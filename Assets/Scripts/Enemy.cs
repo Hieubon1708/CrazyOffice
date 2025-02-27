@@ -12,15 +12,16 @@ public class Enemy : MonoBehaviour
     public void Awake()
     {
         animator = GetComponentInChildren<Animator>();
-        animator.SetInteger("IdleId", Random.Range(0, 10));
+        //animator.SetInteger("IdleId", Random.Range(0, 10));
         rbs = GetComponentsInChildren<Rigidbody>();
-        UseGravity(false);
+        IsKinematic(true);
     }
 
     void IsKinematic(bool isKinematic)
     {
         for (int i = 0; i < rbs.Length; i++)
         {
+            if(rbs[i].name.Contains("Target")) continue;
             rbs[i].isKinematic = isKinematic;
         }
     }

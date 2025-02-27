@@ -20,7 +20,6 @@ public class PlayerController : MonoBehaviour
 
     public void Start()
     {
-        Move();
     }
 
     public void Move()
