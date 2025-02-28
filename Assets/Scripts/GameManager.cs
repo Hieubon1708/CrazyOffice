@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
         }
         set
         {
-            PlayerPrefs.SetInt("Player", value);
+            PlayerPrefs.SetInt("Level", value);
         }
     }
 

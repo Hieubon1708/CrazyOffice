@@ -9,7 +9,6 @@ public class UIController : MonoBehaviour
 
     public Setting setting;
     public Shop shop;
-    public Office office;
 
     public GameObject panelWin;
     public GameObject panelLose;
@@ -17,24 +16,39 @@ public class UIController : MonoBehaviour
 
     public TextMeshProUGUI textGold;
     public TextMeshProUGUI textCash;
+    public TextMeshProUGUI textLevel;
 
     void Awake()
     {
         instance = this;
     }
 
-    void Start()
-    {
-        LoadData();
-    }
-
-    void LoadData()
+    public void Start()
     {
         shop.LoadData();
         setting.LoadData();
 
         textGold.text = GameManager.instance.Gold.ToString();
         textCash.text = GameManager.instance.Cash.ToString();
+    }
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            Win();
+        }
+    }
+
+    public void LoadData()
+    {
+        textLevel.text = "Level " + GameManager.instance.Level;
+    }
+
+    public void Win()
+    {
+        GameManager.instance.Level++;
+        ShowPanelWin();
     }
 
     void ShowPanelWin()
@@ -69,5 +83,11 @@ public class UIController : MonoBehaviour
         GameManager.instance.CurrentWeapon = weaponType;
         shop.ResetLightsSelectBox();
         //
+    }
+
+    public void NextLevel()
+    {
+        HidePanelWin();
+        GameController.instance.LoadLevel(GameManager.instance.Level);
     }
 }

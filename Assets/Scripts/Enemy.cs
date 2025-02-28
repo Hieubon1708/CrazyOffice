@@ -1,36 +1,49 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
     public int hp;
+    public GameController.IdleType idleType;
+
+    public bool isThrowObject;
+
+    public Rigidbody rbFirstProtective;
+    public Rigidbody rbSecondProtective;
+
     Animator animator;
-    float distance = 10f;
-    public bool isReady;
-    bool isBoxing;
     Rigidbody[] rbs;
+    NavMeshAgent navMeshAgent;
+    ThrowObject enemyHand;
+
+    public float distanceReady = 10f;
+
+    [HideInInspector]
+    public bool isTarget;
+
+    bool isPrepareForBattle;
+    float timeToKill;
 
     public void Awake()
     {
-        animator = GetComponentInChildren<Animator>();
-        //animator.SetInteger("IdleId", Random.Range(0, 10));
+        animator = GetComponentInChildren<Animator>(); 
         rbs = GetComponentsInChildren<Rigidbody>();
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        if(isThrowObject) enemyHand = GetComponentInChildren<ThrowObject>();
         IsKinematic(true);
+    }
+
+    public void Start()
+    {
+        animator.SetInteger("IdleId", GameController.instance.GetIndexIdle(idleType));
+        animator.SetTrigger("Idle");
     }
 
     void IsKinematic(bool isKinematic)
     {
         for (int i = 0; i < rbs.Length; i++)
         {
-            if(rbs[i].name.Contains("Target")) continue;
             rbs[i].isKinematic = isKinematic;
-        }
-    }
-
-    void UseGravity(bool isUse)
-    {
-        for (int i = 0; i < rbs.Length; i++)
-        {
-            rbs[i].useGravity = isUse;
         }
     }
 
@@ -38,25 +51,91 @@ public class Enemy : MonoBehaviour
     {
         if (this.hp <= 0) return;
         this.hp -= hp;
-    }
+        if(this.hp == 2)
+        {
+            rbFirstProtective.isKinematic = false;
+        }
+        else if(this.hp == 1)
+        {
+            rbSecondProtective.isKinematic = false;
+        }
+        else
+        {
+
+        }
+    }  
 
     public void Update()
     {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            enemyHand.Init();
+        }
+    }
+
+    public void FixedUpdate()
+    {
         if (PlayerController.instance != null)
         {
-            if (isReady)
+            if (isTarget)
             {
-                float distance = Vector3.Distance(transform.position, PlayerController.instance.transform.position);
-                if (distance <= this.distance)
+                // check khoảng cách nếu đến 1 khoảng thì chuẩn bị tư thế tiến đấu, hoặc ném vật
+                Vector3 target = PlayerController.instance.transform.position;
+                float distance = Vector3.Distance(transform.position, new Vector3(target.x, transform.position.y, target.z));
+                if (distance <= distanceReady)
                 {
-                    if (!isBoxing)
+                    if (!isPrepareForBattle)
                     {
-                        animator.SetTrigger("Walk");
-                        isBoxing = true;
+                        // nếu là ném thì dừng di chuyển của player tạm thời
+                        if (isThrowObject)
+                        {
+                            enemyHand.Init();
+                            animator.SetTrigger("Throw");
+                            PlayerController.instance.Speed = 0;  
+                        }
+                        else
+                        {
+                            animator.SetTrigger("Walk");
+                        }
+                        isPrepareForBattle = true;
                     }
-                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(PlayerController.instance.transform.position), 0.1f);
+
+                    // đủ khoảng cách thì luôn look at vào th player
+                    Quaternion targetRotation = Quaternion.LookRotation(new Vector3(target.x, transform.position.y, target.z) - transform.position);
+                    transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.1f);
+                    float angle = Quaternion.Angle(transform.rotation, targetRotation);
+
+                    // nếu đủ tầm thì chạy vào gần player, 2 con tiến vào nhau cùng lúc
+                    if (angle < 1 && distance > GameController.instance.distanceToKill && PlayerController.instance.Speed > 0)
+                    {
+                        navMeshAgent.SetDestination(PlayerController.instance.transform.position);
+                    }
+
+                    // đủ tầm thì stop r tấn công
+                    if (distance <= GameController.instance.distanceToKill)
+                    {
+                        navMeshAgent.isStopped = true;
+                        timeToKill += Time.fixedDeltaTime;
+                        if (timeToKill >= 1)
+                        {
+                            isTarget = false;
+                            Kill();
+                        }
+                    }
                 }
             }
         }
+    }
+
+    void Kill()
+    {
+        Debug.Log("Kill");
+        string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
+        animator.SetTrigger(aniName);
+    }
+
+    public void Damage()
+    {
+        Debug.Log("Damage");
     }
 }
