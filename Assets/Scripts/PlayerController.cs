@@ -80,13 +80,13 @@ public class PlayerController : MonoBehaviour
             float clampY = Mathf.Clamp(xRotation + startRotation.y, 15, 165);
 
             Quaternion newLocalRotation = Quaternion.Euler(clampX, clampY, weapon.localEulerAngles.z);
-            weapon.localRotation = Quaternion.Lerp(weapon.localRotation, newLocalRotation, 0.1f);
+            weapon.localRotation = Quaternion.Lerp(weapon.localRotation, newLocalRotation, 0.35f);
 
             //Position
             float xPosition = (currentInput.x - startInput.x) * 0.0005f;
             float yPositiion = (startInput.y - currentInput.y) * 0.0005f;
 
-            weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, startPosition.y + yPositiion, startPosition.z + xPosition), 0.1f);
+            weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, startPosition.y + yPositiion, startPosition.z + xPosition), 0.35f);
         }
 
         // di chuyển về phía enemy, khi đến gần nhau thì dừng lại
@@ -108,7 +108,7 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 target = enemies[index].transform.position;
             Quaternion targetRotation = Quaternion.LookRotation(new Vector3(target.x, transform.position.y, target.z) - transform.position);
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.1f);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.35f);
             float angle = Quaternion.Angle(transform.rotation, targetRotation);
 
             if (angle < 1)
@@ -116,5 +116,12 @@ public class PlayerController : MonoBehaviour
                 isRoting = false;
             }
         }
+    }
+
+
+
+    public void SubtractHp()
+    {
+        enemies[index].SubtractHp(1, null);
     }
 }

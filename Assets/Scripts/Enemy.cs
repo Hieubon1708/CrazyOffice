@@ -61,6 +61,8 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            navMeshAgent.enabled = false;
+            IsKinematic(false);
 
         }
     }  
