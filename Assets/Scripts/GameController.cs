@@ -5,6 +5,8 @@ public class GameController : MonoBehaviour
     public static GameController instance;
 
     public float distanceToKill;
+
+    [HideInInspector]
     public GameObject levelObject;
 
     public GameObject[] preObjectToThrow;
@@ -17,11 +19,6 @@ public class GameController : MonoBehaviour
     public enum WeaponType
     {
         A, B, C, None
-    }
-
-    public enum ModeType
-    {
-        Normal, Boss, None
     }
 
     public enum IdleType

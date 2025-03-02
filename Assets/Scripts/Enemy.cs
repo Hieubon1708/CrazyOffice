@@ -129,9 +129,9 @@ public class Enemy : MonoBehaviour
 
     void Kill()
     {
-        Debug.Log("Kill");
+       /* Debug.Log("Kill");
         string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
-        animator.SetTrigger(aniName);
+        animator.SetTrigger(aniName);*/
     }
 
     public void Damage()

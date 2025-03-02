@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour
 
     public Setting setting;
     public Shop shop;
+    public Progress progress;
 
     public GameObject panelWin;
     public GameObject panelLose;
@@ -32,17 +33,10 @@ public class UIController : MonoBehaviour
         textCash.text = GameManager.instance.Cash.ToString();
     }
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            Win();
-        }
-    }
-
     public void LoadData()
     {
         textLevel.text = "Level " + GameManager.instance.Level;
+        progress.LoadData();
     }
 
     public void Win()
@@ -82,7 +76,6 @@ public class UIController : MonoBehaviour
     {
         GameManager.instance.CurrentWeapon = weaponType;
         shop.ResetLightsSelectBox();
-        //
     }
 
     public void NextLevel()
