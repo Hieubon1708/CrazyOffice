@@ -4,10 +4,12 @@ public class Object : MonoBehaviour
 {
     bool isCollision;
     Rigidbody rb;
+    BoxCollider col;
 
     public void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        col = transform.GetChild(0).GetComponent<BoxCollider>();
         rb.isKinematic = true;
         transform.localPosition = Vector3.zero;
     }
@@ -45,18 +47,31 @@ public class Object : MonoBehaviour
             Vector3 dir = transform.position - Vector3.forward - transform.position;
             Physics.Raycast(transform.position, dir * 5, out hit);
 
-            if(hit.collider != null)
+            if (hit.collider != null)
             {
                 rb.useGravity = false;
 
                 SetAngular(25f);
 
-                Vector3 dirReverse = PlayerController.instance.enemies[0].rbs[0].transform.position - transform.position;
+                rb.excludeLayers = 0;
+
+                Vector3 dirReverse = PlayerController.instance.enemies[0].rbs[8].transform.position - transform.position;
 
                 rb.velocity = dirReverse.normalized * 35;
-
-                Debug.Log("Ok");
             }
+            else
+            {
+                col.enabled = false;
+            }
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            PlayerController.instance.enemies[0].DieByObject();
+
+            rb.useGravity = true;
+
+            col.enabled = false;
         }
     }
 

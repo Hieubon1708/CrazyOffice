@@ -1,4 +1,5 @@
-﻿using RootMotion.Dynamics;
+﻿using DG.Tweening;
+using RootMotion.Dynamics;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,7 +18,6 @@ public class Enemy : MonoBehaviour
     NavMeshAgent navMeshAgent;
     ThrowObject enemyHand;
     PuppetMaster puppetMaster;
-    WeaponHandler weaponHandler;
 
     [HideInInspector]
     public bool isTarget;
@@ -135,5 +135,14 @@ public class Enemy : MonoBehaviour
     public void Damage()
     {
         Debug.Log("Damage");
+    }
+
+    public void DieByObject()
+    {
+        animator.enabled = false;
+        navMeshAgent.enabled = false;
+        puppetMaster.state = PuppetMaster.State.Dead;
+
+        rbs[8].AddForce(new Vector3(0, 0, Random.Range(10f, 20f)), ForceMode.Impulse);
     }
 }
