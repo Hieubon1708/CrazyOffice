@@ -7,14 +7,16 @@ public class PlayerController : MonoBehaviour
 
     public Enemy[] enemies;
     NavMeshAgent navMeshAgent;
-    Rigidbody rb;
+    WeaponHandler weaponHandler;
 
     public int hp;
-    int index = -1;
+
+    [HideInInspector]
+    public int index = -1;
 
     bool isMoving;
     bool isRoting;
-    
+
     public float Speed
     {
         get
@@ -31,12 +33,12 @@ public class PlayerController : MonoBehaviour
     {
         instance = this;
         navMeshAgent = GetComponent<NavMeshAgent>();
-        rb = GetComponent<Rigidbody>();
+
+        InitWeapon();
     }
 
     public void Start()
     {
-        Move();
     }
 
     public void Move()
@@ -51,8 +53,12 @@ public class PlayerController : MonoBehaviour
     bool isDrag;
 
     Vector3 startInput;
+    Vector3 endInput;
     Vector3 startPosition;
     Vector3 startRotation;
+
+    [HideInInspector]
+    public bool isCollision;
 
     public void Update()
     {
@@ -87,6 +93,17 @@ public class PlayerController : MonoBehaviour
             float yPositiion = (startInput.y - currentInput.y) * 0.0005f;
 
             weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, startPosition.y + yPositiion, startPosition.z + xPosition), 0.35f);
+
+            if (isCollision)
+            {
+                float distance = Vector2.Distance(currentInput, endInput);
+                if (distance > 50 && weaponHandler.collidersInContact.Count > 0)
+                {
+                    enemies[index].SubtractHp(1, (currentInput - endInput).normalized, weaponHandler.collidersInContact[0].attachedRigidbody);
+                }
+            }
+
+            endInput = Input.mousePosition;
         }
 
         // di chuyển về phía enemy, khi đến gần nhau thì dừng lại
@@ -106,22 +123,15 @@ public class PlayerController : MonoBehaviour
         //khi đến dừng gần lại, thì quay nếu k đủ góc
         if (isRoting)
         {
-            Vector3 target = enemies[index].transform.position;
+            Vector3 target = enemies[index].rbs[0].transform.position;
             Quaternion targetRotation = Quaternion.LookRotation(new Vector3(target.x, transform.position.y, target.z) - transform.position);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.35f);
             float angle = Quaternion.Angle(transform.rotation, targetRotation);
-
-            if (angle < 1)
-            {
-                isRoting = false;
-            }
         }
     }
 
-
-
-    public void SubtractHp()
+    public void InitWeapon()
     {
-        enemies[index].SubtractHp(1, null);
+        weaponHandler = weapon.GetComponent<WeaponHandler>();
     }
 }

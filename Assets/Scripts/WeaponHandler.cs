@@ -1,13 +1,31 @@
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class WeaponHandler : MonoBehaviour
 {
-    private void OnCollisionStay(Collision collision)
+    public List<Collider> collidersInContact = new List<Collider>();
+
+    void OnCollisionEnter(Collision collision)
     {
-        if(collision.impulse.magnitude > 35)
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy")) return;
+        if (!collidersInContact.Contains(collision.collider))
         {
-            Debug.Log(collision.impulse.magnitude);
-            //PlayerController.instance.SubtractHp();
+            collidersInContact.Add(collision.collider);
         }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy")) return;
+        if (collidersInContact.Contains(collision.collider))
+        {
+            collidersInContact.Remove(collision.collider);
+        }
+    }
+
+    void Update()
+    {
+        //Debug.Log("Số collider đang va chạm: " + collidersInContact.Count);
+        PlayerController.instance.isCollision = collidersInContact.Count > 0;
     }
 }

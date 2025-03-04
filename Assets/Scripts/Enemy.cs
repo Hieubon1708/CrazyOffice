@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RootMotion.Dynamics;
+using UnityEngine;
 using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
@@ -12,15 +13,15 @@ public class Enemy : MonoBehaviour
     public Rigidbody rbSecondProtective;
 
     Animator animator;
-    Rigidbody[] rbs;
+    public Rigidbody[] rbs;
     NavMeshAgent navMeshAgent;
     ThrowObject enemyHand;
-
-    public float distanceReady = 10f;
+    PuppetMaster puppetMaster;
+    WeaponHandler weaponHandler;
 
     [HideInInspector]
     public bool isTarget;
-
+    public float distanceReady = 10f;
     bool isPrepareForBattle;
     float timeToKill;
 
@@ -29,8 +30,8 @@ public class Enemy : MonoBehaviour
         animator = GetComponentInChildren<Animator>(); 
         rbs = GetComponentsInChildren<Rigidbody>();
         navMeshAgent = GetComponent<NavMeshAgent>();
-        if(isThrowObject) enemyHand = GetComponentInChildren<ThrowObject>();
-        IsKinematic(true);
+        puppetMaster = GetComponentInChildren<PuppetMaster>();
+        if (isThrowObject) enemyHand = GetComponentInChildren<ThrowObject>();
     }
 
     public void Start()
@@ -39,15 +40,7 @@ public class Enemy : MonoBehaviour
         animator.SetTrigger("Idle");
     }
 
-    void IsKinematic(bool isKinematic)
-    {
-        for (int i = 0; i < rbs.Length; i++)
-        {
-            rbs[i].isKinematic = isKinematic;
-        }
-    }
-
-    public void SubtractHp(int hp, Transform killer)
+    public void SubtractHp(int hp, Vector2 dir, Rigidbody rb)
     {
         if (this.hp <= 0) return;
         this.hp -= hp;
@@ -61,9 +54,11 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            animator.enabled = false;
             navMeshAgent.enabled = false;
-            IsKinematic(false);
+            puppetMaster.state = PuppetMaster.State.Dead;
 
+            rb.AddForce(new Vector3(dir.x * 150f, dir.y * 150f, Random.Range(150f, 200f)), ForceMode.Impulse);
         }
     }  
 
@@ -72,12 +67,13 @@ public class Enemy : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.A))
         {
             enemyHand.Init();
+            enemyHand.Throw();
         }
     }
 
     public void FixedUpdate()
     {
-        if (PlayerController.instance != null)
+        if (PlayerController.instance != null && navMeshAgent.enabled)
         {
             if (isTarget)
             {

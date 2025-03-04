@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 2987912703168672651}
   - component: {fileID: 6724702647049191298}
   - component: {fileID: 8605993830453629252}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 6526588710832398590}
   - component: {fileID: 3680936718234302044}
   - component: {fileID: 5149223809082327784}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Touch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -286,9 +286,9 @@ GameObject:
   - component: {fileID: 1698031438680491017}
   - component: {fileID: 7070094276569597411}
   - component: {fileID: 6837185459861975081}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Weapon
-  m_TagString: Untagged
+  m_TagString: Weapon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -349,6 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 045501ebf23efd24eabeb0288ba6a42f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  collidersInContact: []
 --- !u!1 &5734973915253521336
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,7 +359,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5967860911121005517}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: FXPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -393,9 +394,9 @@ GameObject:
   - component: {fileID: 277442733230015271}
   - component: {fileID: 6389410410622981396}
   - component: {fileID: 980030448074526015}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -433,6 +434,7 @@ MonoBehaviour:
   enemies: []
   hp: 1
   weapon: {fileID: 1698031438680491017}
+  isCollision: 0
 --- !u!195 &277442733230015271
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -481,7 +483,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!136 &980030448074526015
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -497,7 +499,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -609,7 +611,7 @@ GameObject:
   - component: {fileID: 3169105605042482663}
   - component: {fileID: 7113965600261497963}
   - component: {fileID: 6849702573507127456}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
