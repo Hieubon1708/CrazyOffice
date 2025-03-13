@@ -21,17 +21,25 @@ public class Enemy : MonoBehaviour
 
     [HideInInspector]
     public bool isTarget;
+
     public float distanceReady = 10f;
+    public float playerAngularSpeed;
+    public float playerStartSpeed;
+
     bool isPrepareForBattle;
     float timeToKill;
 
+    LayerMask weaponLayer;
+
     public void Awake()
     {
-        animator = GetComponentInChildren<Animator>(); 
+        animator = GetComponentInChildren<Animator>();
         rbs = GetComponentsInChildren<Rigidbody>();
         navMeshAgent = GetComponent<NavMeshAgent>();
         puppetMaster = GetComponentInChildren<PuppetMaster>();
         if (isThrowObject) enemyHand = GetComponentInChildren<ThrowObject>();
+
+        weaponLayer = LayerMask.GetMask("Weapon");
     }
 
     public void Start()
@@ -43,12 +51,13 @@ public class Enemy : MonoBehaviour
     public void SubtractHp(int hp, Vector2 dir, Rigidbody rb)
     {
         if (this.hp <= 0) return;
+        //Debug.Log(rb.name);
         this.hp -= hp;
-        if(this.hp == 2)
+        if (this.hp == 2)
         {
             rbFirstProtective.isKinematic = false;
         }
-        else if(this.hp == 1)
+        else if (this.hp == 1)
         {
             rbSecondProtective.isKinematic = false;
         }
@@ -56,18 +65,41 @@ public class Enemy : MonoBehaviour
         {
             animator.enabled = false;
             navMeshAgent.enabled = false;
-            puppetMaster.state = PuppetMaster.State.Dead;
 
-            rb.AddForce(new Vector3(dir.x * 150f, dir.y * 150f, Random.Range(150f, 200f)), ForceMode.Impulse);
+            puppetMaster.state = PuppetMaster.State.Dead;
+            puppetMaster.mode = PuppetMaster.Mode.Active;
+
+            puppetMaster.muscleSpring = 0;
+
+            for (int i = 0; i < rbs.Length; i++)
+            {
+                rbs[i].excludeLayers = weaponLayer;
+                rbs[i].isKinematic = false;
+            }
+
+            Vector3 localForce = transform.TransformDirection(new Vector3(-dir.x * 200f, dir.y * 200f, Random.Range(-200f, -250f)));
+
+            rb.AddForce(localForce, ForceMode.Impulse);
+
+            DOVirtual.DelayedCall(2.5f, delegate
+            {
+                PlayerController.instance.ResumeMove();
+                PlayerController.instance.Move(true);
+            });
         }
-    }  
+    }
 
     public void Update()
     {
+        Debug.Log(PlayerController.instance.isMoving);
         if (Input.GetKeyDown(KeyCode.A))
         {
-            enemyHand.Init();
-            enemyHand.Throw();
+            PlayerController.instance.ResumeMove();
+        }
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            PlayerController.instance.StopMove();
+            PlayerController.instance.ResetPath();
         }
     }
 
@@ -87,15 +119,24 @@ public class Enemy : MonoBehaviour
                         // nếu là ném thì dừng di chuyển của player tạm thời
                         if (isThrowObject)
                         {
-                            enemyHand.Init();
-                            animator.SetTrigger("Throw");
-                            PlayerController.instance.Speed = 0;  
+                            PlayerController.instance.StopMove();
+                            PlayerController.instance.ResetPath();
+
+                            if (PlayerController.instance.isLookAt)
+                            {
+                                PlayerController.instance.StopMove();
+
+                                /*enemyHand.Init(rbs[9].transform.position);
+                                animator.SetTrigger("Throw");*/
+
+                                isPrepareForBattle = true;
+                            }
                         }
                         else
                         {
                             animator.SetTrigger("Walk");
+                            isPrepareForBattle = true;
                         }
-                        isPrepareForBattle = true;
                     }
 
                     // đủ khoảng cách thì luôn look at vào th player
@@ -104,7 +145,7 @@ public class Enemy : MonoBehaviour
                     float angle = Quaternion.Angle(transform.rotation, targetRotation);
 
                     // nếu đủ tầm thì chạy vào gần player, 2 con tiến vào nhau cùng lúc
-                    if (angle < 1 && distance > GameController.instance.distanceToKill && PlayerController.instance.Speed > 0)
+                    /*if (angle < 1 && distance > GameController.instance.distanceToKill && PlayerController.instance.navMeshAgent.updatePosition)
                     {
                         navMeshAgent.SetDestination(PlayerController.instance.transform.position);
                     }
@@ -119,7 +160,7 @@ public class Enemy : MonoBehaviour
                             isTarget = false;
                             Kill();
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -127,9 +168,9 @@ public class Enemy : MonoBehaviour
 
     void Kill()
     {
-       /* Debug.Log("Kill");
-        string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
-        animator.SetTrigger(aniName);*/
+        /* Debug.Log("Kill");
+         string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
+         animator.SetTrigger(aniName);*/
     }
 
     public void Damage()
@@ -137,12 +178,8 @@ public class Enemy : MonoBehaviour
         Debug.Log("Damage");
     }
 
-    public void DieByObject()
+    public void DieByObject(Rigidbody rb)
     {
-        animator.enabled = false;
-        navMeshAgent.enabled = false;
-        puppetMaster.state = PuppetMaster.State.Dead;
-
-        rbs[8].AddForce(new Vector3(0, 0, Random.Range(10f, 20f)), ForceMode.Impulse);
+        SubtractHp(1, Vector2.zero, rb);
     }
 }

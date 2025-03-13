@@ -42,13 +42,13 @@ public class GameController : MonoBehaviour
 
     public int GetIndexIdle(IdleType idleType)
     {
-        switch (idleType)
+        /*switch (idleType)
         {
             case IdleType.ListenToThePhone: return 1;
             case IdleType.ShoulderRub: return 8;
             case IdleType.BendDownToDoSomething: return 5;
             case IdleType.RaiseRightHand: return 7;
-        }
+        }*/
         return 0;
     }
 }

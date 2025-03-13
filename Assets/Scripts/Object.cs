@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class Object : MonoBehaviour
@@ -5,6 +6,7 @@ public class Object : MonoBehaviour
     bool isCollision;
     Rigidbody rb;
     BoxCollider col;
+    public Vector3 targetHead;
 
     public void Awake()
     {
@@ -39,6 +41,7 @@ public class Object : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
+        if (!col.enabled) return;
         if (!isCollision && collision.gameObject.CompareTag("Weapon"))
         {
             isCollision = true;
@@ -55,19 +58,15 @@ public class Object : MonoBehaviour
 
                 rb.excludeLayers = 0;
 
-                Vector3 dirReverse = PlayerController.instance.enemies[0].rbs[8].transform.position - transform.position;
+                Vector3 dirReverse = targetHead - transform.position;
 
-                rb.velocity = dirReverse.normalized * 35;
-            }
-            else
-            {
-                col.enabled = false;
+                rb.velocity = dirReverse.normalized * 15;
             }
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
-            PlayerController.instance.enemies[0].DieByObject();
+            PlayerController.instance.enemies[PlayerController.instance.index].DieByObject(collision.rigidbody);
 
             rb.useGravity = true;
 
@@ -80,6 +79,10 @@ public class Object : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             gameObject.SetActive(false);
+            DOVirtual.DelayedCall(1f, delegate
+            {
+                PlayerController.instance.ResumeMove();
+            });
         }
     }
 }

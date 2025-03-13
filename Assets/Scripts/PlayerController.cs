@@ -1,12 +1,17 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController instance;
 
+    public const float finalSpeed = 6;
+
     public Enemy[] enemies;
-    NavMeshAgent navMeshAgent;
+
+    [HideInInspector]
+    public NavMeshAgent navMeshAgent;
     WeaponHandler weaponHandler;
 
     public int hp;
@@ -14,8 +19,12 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public int index = -1;
 
-    bool isMoving;
+    [HideInInspector]
+    public bool isMoving;
     bool isRoting;
+
+    [HideInInspector]
+    public bool isLookAt;
 
     public float Speed
     {
@@ -29,24 +38,101 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public float AngularSpeed
+    {
+        get
+        {
+            return navMeshAgent.angularSpeed;
+        }
+        set
+        {
+            navMeshAgent.angularSpeed = value;
+        }
+    }
+
+    public bool IsUpdatePosition
+    {
+        get
+        {
+            return navMeshAgent.updatePosition;
+        }
+        set
+        {
+            navMeshAgent.updatePosition = value;
+        }
+    }
+
+    public bool IsUpdateRotation
+    {
+        get
+        {
+            return navMeshAgent.updateRotation;
+        }
+        set
+        {
+            navMeshAgent.updateRotation = value;
+        }
+    }
+    
+    public bool IsStop
+    {
+        get
+        {
+            return navMeshAgent.isStopped;
+        }
+        set
+        {
+            navMeshAgent.isStopped = value;
+        }
+    }
+
+    public Vector3 Destination
+    {
+        set
+        {
+            navMeshAgent.SetDestination(value);
+        }
+    }
+
     void Awake()
     {
         instance = this;
         navMeshAgent = GetComponent<NavMeshAgent>();
+
+        Speed = finalSpeed;
 
         InitWeapon();
     }
 
     public void Start()
     {
+        Move(true);
     }
 
-    public void Move()
+    public void Move(bool a)
     {
-        index++;
+        if (index + 1 == enemies.Length)
+        {
+            //UIController.instance.Win();
+            Debug.Log("Win");
+            return;
+        }
+
+        if(a) index++;
+
+        ResetParam();
+
         enemies[index].isTarget = true;
-        if (index < enemies.Length) isMoving = true;
-        else Debug.LogError("Out of Array " + index + " / " + enemies.Length);
+
+        AngularSpeed = enemies[index].playerAngularSpeed;
+        Speed = enemies[index].playerStartSpeed;
+    }
+
+    void ResetParam()
+    {
+        isRoting = false;
+        isMoving = true;
+        totalSpeedTime = 0;
     }
 
     public Transform weapon;
@@ -60,12 +146,15 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public bool isCollision;
 
+    float totalSpeedTime;
+
     public void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
             isDrag = true;
             startInput = Input.mousePosition;
+            endInput = Input.mousePosition;
             startRotation = weapon.localEulerAngles;
             startPosition = weapon.localPosition;
         }
@@ -97,7 +186,7 @@ public class PlayerController : MonoBehaviour
             if (isCollision)
             {
                 float distance = Vector2.Distance(currentInput, endInput);
-                if (distance > 50 && weaponHandler.collidersInContact.Count > 0)
+                if (distance > 40f && weaponHandler.collidersInContact.Count > 0)
                 {
                     enemies[index].SubtractHp(1, (currentInput - endInput).normalized, weaponHandler.collidersInContact[0].attachedRigidbody);
                 }
@@ -106,28 +195,59 @@ public class PlayerController : MonoBehaviour
             endInput = Input.mousePosition;
         }
 
+        Vector3 targetPosition = enemies[index].transform.position;
+
         // di chuyển về phía enemy, khi đến gần nhau thì dừng lại
         if (isMoving)
         {
-            navMeshAgent.isStopped = false;
-            Vector3 target = enemies[index].transform.position;
-            navMeshAgent.SetDestination(target);
-            if (Vector3.Distance(new Vector3(transform.position.x, target.y, transform.position.z), target) < GameController.instance.distanceToKill && !navMeshAgent.isOnOffMeshLink)
+            if (Speed < finalSpeed)
             {
-                navMeshAgent.isStopped = true;
+                totalSpeedTime += Time.deltaTime;
+                Speed = Mathf.Clamp(Speed + totalSpeedTime, 0, finalSpeed);
+                //Debug.Log(Speed);
+            }
+
+            IsStop = false;
+            Destination = targetPosition;
+            if (Vector3.Distance(new Vector3(transform.position.x, targetPosition.y, transform.position.z), targetPosition) < GameController.instance.distanceToKill && !navMeshAgent.isOnOffMeshLink)
+            {
+                IsStop = true;
                 isMoving = false;
                 isRoting = true;
             }
         }
 
+        Vector3 targetHip = enemies[index].rbs[0].transform.position;
+        Quaternion targetRotation = Quaternion.LookRotation(new Vector3(targetHip.x, transform.position.y, targetHip.z) - transform.position);
+        isLookAt = (Quaternion.Angle(transform.rotation, targetRotation) < 5);
+
         //khi đến dừng gần lại, thì quay nếu k đủ góc
         if (isRoting)
         {
-            Vector3 target = enemies[index].rbs[0].transform.position;
-            Quaternion targetRotation = Quaternion.LookRotation(new Vector3(target.x, transform.position.y, target.z) - transform.position);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.35f);
-            float angle = Quaternion.Angle(transform.rotation, targetRotation);
         }
+    }
+
+    public void ResetSpeed()
+    {
+        Speed = finalSpeed;
+    }
+
+    public void StopMove()
+    {
+        isMoving = false;
+        IsUpdatePosition = false;
+    }
+
+    public void ResumeMove()
+    {
+        IsUpdatePosition = true;
+        isMoving = true;
+    }
+
+    public void ResetPath()
+    {
+        Destination = transform.position;
     }
 
     public void InitWeapon()
