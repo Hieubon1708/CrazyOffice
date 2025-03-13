@@ -87,21 +87,7 @@ public class Enemy : MonoBehaviour
                 PlayerController.instance.Move(true);
             });
         }
-    }
-
-    public void Update()
-    {
-        Debug.Log(PlayerController.instance.isMoving);
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            PlayerController.instance.ResumeMove();
-        }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            PlayerController.instance.StopMove();
-            PlayerController.instance.ResetPath();
-        }
-    }
+    } 
 
     public void FixedUpdate()
     {
@@ -120,14 +106,11 @@ public class Enemy : MonoBehaviour
                         if (isThrowObject)
                         {
                             PlayerController.instance.StopMove();
-                            PlayerController.instance.ResetPath();
 
                             if (PlayerController.instance.isLookAt)
                             {
-                                PlayerController.instance.StopMove();
-
-                                /*enemyHand.Init(rbs[9].transform.position);
-                                animator.SetTrigger("Throw");*/
+                                enemyHand.Init(rbs[9].transform.position);
+                                animator.SetTrigger("Throw");
 
                                 isPrepareForBattle = true;
                             }
@@ -164,6 +147,12 @@ public class Enemy : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void FightAgain()
+    {
+        isThrowObject = false;
+        isPrepareForBattle = false;
     }
 
     void Kill()

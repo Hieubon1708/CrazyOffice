@@ -61,18 +61,6 @@ public class PlayerController : MonoBehaviour
             navMeshAgent.updatePosition = value;
         }
     }
-
-    public bool IsUpdateRotation
-    {
-        get
-        {
-            return navMeshAgent.updateRotation;
-        }
-        set
-        {
-            navMeshAgent.updateRotation = value;
-        }
-    }
     
     public bool IsStop
     {
@@ -150,6 +138,9 @@ public class PlayerController : MonoBehaviour
 
     public void Update()
     {
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+        }
         if (Input.GetMouseButtonDown(0))
         {
             isDrag = true;
@@ -243,11 +234,14 @@ public class PlayerController : MonoBehaviour
     {
         IsUpdatePosition = true;
         isMoving = true;
+
+        navMeshAgent.nextPosition = transform.position;
+        Destination = enemies[index].transform.position;
     }
 
-    public void ResetPath()
+    public void FightAgain()
     {
-        Destination = transform.position;
+        enemies[index].FightAgain();
     }
 
     public void InitWeapon()

@@ -83,6 +83,11 @@ public class Object : MonoBehaviour
             {
                 PlayerController.instance.ResumeMove();
             });
+            
+            DOVirtual.DelayedCall(1.5f, delegate
+            {
+                PlayerController.instance.FightAgain();
+            });
         }
     }
 }
