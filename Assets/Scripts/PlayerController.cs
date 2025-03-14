@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public NavMeshAgent navMeshAgent;
     WeaponHandler weaponHandler;
+    CameraPlayer cameraPlayer;
 
     public int hp;
 
@@ -25,6 +26,8 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector]
     public bool isLookAt;
+
+    public Transform weaponContainer;
 
     public float Speed
     {
@@ -82,10 +85,19 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public Vector3 Dir
+    {
+        get
+        {
+            return transform.position - enemies[index].transform.position;
+        }
+    }
+
     void Awake()
     {
         instance = this;
         navMeshAgent = GetComponent<NavMeshAgent>();
+        cameraPlayer = GetComponentInChildren<CameraPlayer>();
 
         Speed = finalSpeed;
 
@@ -94,19 +106,18 @@ public class PlayerController : MonoBehaviour
 
     public void Start()
     {
-        Move(true);
+        Move();
     }
 
-    public void Move(bool a)
+    public void Move()
     {
         if (index + 1 == enemies.Length)
         {
-            //UIController.instance.Win();
-            Debug.Log("Win");
+            UIController.instance.Win();
             return;
         }
 
-        if(a) index++;
+        index++;
 
         ResetParam();
 
@@ -123,6 +134,7 @@ public class PlayerController : MonoBehaviour
         totalSpeedTime = 0;
     }
 
+    [HideInInspector]
     public Transform weapon;
     bool isDrag;
 
@@ -138,9 +150,7 @@ public class PlayerController : MonoBehaviour
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-        }
+        if (!navMeshAgent.enabled) return;
         if (Input.GetMouseButtonDown(0))
         {
             isDrag = true;
@@ -172,7 +182,10 @@ public class PlayerController : MonoBehaviour
             float xPosition = (currentInput.x - startInput.x) * 0.0005f;
             float yPositiion = (startInput.y - currentInput.y) * 0.0005f;
 
-            weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, startPosition.y + yPositiion, startPosition.z + xPosition), 0.35f);
+            float xClamp = Mathf.Clamp(startPosition.z + xPosition, -0.5f, 0.5f);
+            float yClamp = Mathf.Clamp(startPosition.y + yPositiion, -0.5f, 0f);
+
+            weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, yClamp, xClamp), 0.35f);
 
             if (isCollision)
             {
@@ -208,7 +221,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        Vector3 targetHip = enemies[index].rbs[0].transform.position;
+        Vector3 targetHip = enemies[index].HipPos;
         Quaternion targetRotation = Quaternion.LookRotation(new Vector3(targetHip.x, transform.position.y, targetHip.z) - transform.position);
         isLookAt = (Quaternion.Angle(transform.rotation, targetRotation) < 5);
 
@@ -232,6 +245,8 @@ public class PlayerController : MonoBehaviour
 
     public void ResumeMove()
     {
+        ResetSpeed();
+
         IsUpdatePosition = true;
         isMoving = true;
 
@@ -246,6 +261,27 @@ public class PlayerController : MonoBehaviour
 
     public void InitWeapon()
     {
+        if(weaponHandler != null)
+        {
+            Destroy(weaponHandler.gameObject);
+        }
+
+        GameObject weapon = Instantiate(GameController.instance.prePlayerWeapons[(int)GameManager.instance.CurrentWeapon], weaponContainer);
+        this.weapon = weapon.transform;
         weaponHandler = weapon.GetComponent<WeaponHandler>();
+    }
+
+    public void Die()
+    {
+        if (!navMeshAgent.enabled) return;
+
+        navMeshAgent.enabled = false;
+        cameraPlayer.Die();
+        weaponHandler.Die();
+
+        DOVirtual.DelayedCall(3.5f, delegate
+        {
+            UIController.instance.Lose();
+        });
     }
 }

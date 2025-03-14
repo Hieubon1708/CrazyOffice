@@ -11,6 +11,7 @@ public class Object : MonoBehaviour
     public void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        rb.excludeLayers = LayerMask.GetMask("Enemy");
         col = transform.GetChild(0).GetComponent<BoxCollider>();
         rb.isKinematic = true;
         transform.localPosition = Vector3.zero;
@@ -61,6 +62,20 @@ public class Object : MonoBehaviour
                 Vector3 dirReverse = targetHead - transform.position;
 
                 rb.velocity = dirReverse.normalized * 15;
+            }
+            else
+            {
+                rb.useGravity = true;
+
+                DOVirtual.DelayedCall(1f, delegate
+                {
+                    PlayerController.instance.ResumeMove();
+                });
+
+                DOVirtual.DelayedCall(1.5f, delegate
+                {
+                    PlayerController.instance.FightAgain();
+                });
             }
         }
 

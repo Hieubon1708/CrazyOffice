@@ -44,6 +44,11 @@ public class UIController : MonoBehaviour
         GameManager.instance.Level++;
         ShowPanelWin();
     }
+    
+    public void Lose()
+    {
+        ShowPanelLose();
+    }
 
     void ShowPanelWin()
     {
@@ -81,6 +86,12 @@ public class UIController : MonoBehaviour
     public void NextLevel()
     {
         HidePanelWin();
+        GameController.instance.LoadLevel(GameManager.instance.Level);
+    }
+
+    public void Replay()
+    {
+        HidePanelLose();
         GameController.instance.LoadLevel(GameManager.instance.Level);
     }
 }

@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
     {
         get
         {
-            return (WeaponType)PlayerPrefs.GetInt("CurrentWeapon", (int)WeaponType.A);
+            return (WeaponType)PlayerPrefs.GetInt("CurrentWeapon", (int)WeaponType.BaseballBat);
         }
         set
         {

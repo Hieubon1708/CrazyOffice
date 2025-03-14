@@ -5,31 +5,49 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    public int hp;
+    public GameController.HpType hpType;
     public GameController.IdleType idleType;
+
+    [HideInInspector]
+    public int hp;
 
     public bool isThrowObject;
 
-    public Rigidbody rbFirstProtective;
-    public Rigidbody rbSecondProtective;
+    public Transform head;
+    public Transform spine;
+
+    [HideInInspector]
+    public Rigidbody rbHat;
+
+    [HideInInspector]
+    public Rigidbody rbArmor;
 
     Animator animator;
-    public Rigidbody[] rbs;
+    Rigidbody[] rbs;
     NavMeshAgent navMeshAgent;
-    ThrowObject enemyHand;
+    EnemyEvent enemyEvent;
     PuppetMaster puppetMaster;
 
     [HideInInspector]
     public bool isTarget;
+    [HideInInspector]
+    public bool isDamaging;
 
     public float distanceReady = 10f;
     public float playerAngularSpeed;
     public float playerStartSpeed;
 
     bool isPrepareForBattle;
-    float timeToKill;
 
     LayerMask weaponLayer;
+
+    public Vector3 HipPos
+    {
+        get
+        {
+            return rbs[0].position;
+        }
+    }
 
     public void Awake()
     {
@@ -37,9 +55,14 @@ public class Enemy : MonoBehaviour
         rbs = GetComponentsInChildren<Rigidbody>();
         navMeshAgent = GetComponent<NavMeshAgent>();
         puppetMaster = GetComponentInChildren<PuppetMaster>();
-        if (isThrowObject) enemyHand = GetComponentInChildren<ThrowObject>();
+
+        enemyEvent = GetComponentInChildren<EnemyEvent>();
 
         weaponLayer = LayerMask.GetMask("Weapon");
+
+        hp = GameController.instance.GetHp(hpType);
+
+        GameController.instance.SetClothes(head, spine, hpType, this);
     }
 
     public void Start()
@@ -50,16 +73,50 @@ public class Enemy : MonoBehaviour
 
     public void SubtractHp(int hp, Vector2 dir, Rigidbody rb)
     {
-        if (this.hp <= 0) return;
+        if (this.hp <= 0 || isDamaging) return;
+
         //Debug.Log(rb.name);
+
+        ExcludePlayerWeapon(true);
+
         this.hp -= hp;
         if (this.hp == 2)
         {
-            rbFirstProtective.isKinematic = false;
+            animator.SetTrigger("HitDouble");
+
+            rbHat.isKinematic = false;
+
+            rbHat.transform.SetParent(GameController.instance.levelObject.transform);
+
+            rbHat.angularVelocity = RandomAngularVelocity() * 5;
+
+            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
+
+            rbHat.AddForce(localForce, ForceMode.Impulse);
+
+            DOVirtual.DelayedCall(1.5f, delegate
+            {
+                PlayerController.instance.ResumeMove();
+            });
         }
         else if (this.hp == 1)
         {
-            rbSecondProtective.isKinematic = false;
+            animator.SetTrigger("HitDouble");
+
+            rbArmor.isKinematic = false;
+
+            rbArmor.transform.SetParent(GameController.instance.levelObject.transform);
+
+            rbArmor.angularVelocity = RandomAngularVelocity() * 5;
+
+            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
+
+            rbArmor.AddForce(localForce, ForceMode.Impulse);
+
+            DOVirtual.DelayedCall(1.5f, delegate
+            {
+                PlayerController.instance.ResumeMove();
+            });
         }
         else
         {
@@ -81,13 +138,18 @@ public class Enemy : MonoBehaviour
 
             rb.AddForce(localForce, ForceMode.Impulse);
 
-            DOVirtual.DelayedCall(2.5f, delegate
+            DOVirtual.DelayedCall(2f, delegate
             {
                 PlayerController.instance.ResumeMove();
-                PlayerController.instance.Move(true);
+                PlayerController.instance.Move();
             });
         }
-    } 
+    }
+
+    public void ExcludePlayerWeapon(bool isExclude)
+    {
+        isDamaging = isExclude;
+    }
 
     public void FixedUpdate()
     {
@@ -109,7 +171,7 @@ public class Enemy : MonoBehaviour
 
                             if (PlayerController.instance.isLookAt)
                             {
-                                enemyHand.Init(rbs[9].transform.position);
+                                enemyEvent.Init();
                                 animator.SetTrigger("Throw");
 
                                 isPrepareForBattle = true;
@@ -131,22 +193,36 @@ public class Enemy : MonoBehaviour
                     /*if (angle < 1 && distance > GameController.instance.distanceToKill && PlayerController.instance.navMeshAgent.updatePosition)
                     {
                         navMeshAgent.SetDestination(PlayerController.instance.transform.position);
-                    }
+                    }*/
 
                     // đủ tầm thì stop r tấn công
                     if (distance <= GameController.instance.distanceToKill)
                     {
                         navMeshAgent.isStopped = true;
-                        timeToKill += Time.fixedDeltaTime;
-                        if (timeToKill >= 1)
-                        {
-                            isTarget = false;
-                            Kill();
-                        }
-                    }*/
+                        isTarget = false;
+                        Kill();
+                    }
                 }
             }
         }
+    }
+
+    public void Update()
+    {
+        /*if (Input.GetKeyDown(KeyCode.S))
+        {
+            rbHat.isKinematic = false;
+
+            animator.SetTrigger("HitDouble");
+
+            rbHat.transform.SetParent(GameController.instance.levelObject.transform);
+
+            rbHat.angularVelocity = RandomAngularVelocity() * 5;
+
+            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(10f, 12f), Random.Range(-10f, -12f)));
+
+            rbHat.AddForce(localForce, ForceMode.Impulse);
+        }*/
     }
 
     public void FightAgain()
@@ -157,18 +233,21 @@ public class Enemy : MonoBehaviour
 
     void Kill()
     {
-        /* Debug.Log("Kill");
-         string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
-         animator.SetTrigger(aniName);*/
-    }
-
-    public void Damage()
-    {
-        Debug.Log("Damage");
+        string aniName = Random.Range(0, 2) == 0 ? "Punch_Left" : "Punch_Right";
+        animator.SetTrigger(aniName);
     }
 
     public void DieByObject(Rigidbody rb)
     {
         SubtractHp(1, Vector2.zero, rb);
+    }
+
+    Vector3 RandomAngularVelocity()
+    {
+        return new Vector3(
+           Random.Range(-1f, 1f),
+           Random.Range(-1f, 1f),
+           Random.Range(-1f, 1f)
+       ).normalized;
     }
 }

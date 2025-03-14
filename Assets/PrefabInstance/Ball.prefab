@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54665730374628262}
   - component: {fileID: 1932108477023310715}
   - component: {fileID: 1123630191624995492}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Ball
   m_TagString: Object
   m_Icon: {fileID: 0}
@@ -106,7 +106,7 @@ Rigidbody:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
@@ -160,7 +160,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2866256571160718885}
   - component: {fileID: 6102224419025357335}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: col
   m_TagString: Untagged
   m_Icon: {fileID: 0}
