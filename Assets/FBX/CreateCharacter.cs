@@ -54,25 +54,20 @@ public class CreateCharacter : MonoBehaviour
             CapsuleCollider colN = bones[i].GetComponent<CapsuleCollider>();
             BoxCollider boxN = bones[i].GetComponent<BoxCollider>();
 
-            if(isContainCol)
+            if (boxO != null && boxN == null)
             {
-                if (colN == null)
-                {
-                    if (!isBox)
-                    {
-                        boxN = bones[i].AddComponent<BoxCollider>();
-                    }
-                    else
-                    {
-                        colN = bones[i].AddComponent<CapsuleCollider>();
-                    }
-                }
+                boxN = bones[i].AddComponent<BoxCollider>();
+            }
+            
+            if (colO != null && colN == null)
+            {
+                colN = bones[i].AddComponent<CapsuleCollider>();
             }
 
             Rigidbody rbN = bones[i].GetComponent<Rigidbody>();
             if (rbN == null) rbN = bones[i].AddComponent<Rigidbody>();
 
-            if(isContainCol) EditorUtility.CopySerialized(isBox ? boxO : colO, isBox ? boxN : colN);
+            if (isContainCol) EditorUtility.CopySerialized(isBox ? boxO : colO, isBox ? boxN : colN);
         }
     }
 
