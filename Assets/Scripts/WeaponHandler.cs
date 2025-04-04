@@ -1,11 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using DG.Tweening;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WeaponHandler : MonoBehaviour
 {
     public List<Collider> collidersInContact = new List<Collider>();
 
+    Vector3 normal;
+
     Rigidbody rb;
+
+    bool isThrow;
 
     public void Awake()
     {
@@ -22,24 +28,51 @@ public class WeaponHandler : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy")) return;
-        if (!collidersInContact.Contains(collision.collider))
+        if (isThrow)
         {
-            collidersInContact.Add(collision.collider);
+            if (!rb.useGravity)
+            {
+                PlayerController.instance.CurrentBoss.HitFirst();
+            }
+            rb.useGravity = true;
+        }
+        else
+        {
+            if (!collidersInContact.Contains(collision.collider))
+            {
+                normal = collision.contacts[0].point;
+                collidersInContact.Add(collision.collider);
+            }
         }
     }
 
     void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy")) return;
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy") || isThrow) return;
         if (collidersInContact.Contains(collision.collider))
         {
             collidersInContact.Remove(collision.collider);
         }
     }
 
+    public void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy") || isThrow) return;
+        normal = collision.contacts[0].point;
+    }
+
+    public void ThrowStraight(Vector3 dir)
+    {
+        isThrow = true;
+        transform.SetParent(GameController.instance.levelObject.transform);
+        rb.constraints = RigidbodyConstraints.None;
+        rb.useGravity = false;
+        rb.velocity = dir.normalized * 10;
+        rb.angularVelocity = Vector3.right * 20;
+    }
+
     void Update()
     {
-        //Debug.Log("Số collider đang va chạm: " + collidersInContact.Count);
         PlayerController.instance.isCollision = collidersInContact.Count > 0;
     }
 
@@ -50,5 +83,10 @@ public class WeaponHandler : MonoBehaviour
            Random.Range(-1f, 1f),
            Random.Range(-1f, 1f)
        ).normalized;
+    }
+
+    public void HitFx()
+    {
+        GameController.instance.HitFx(normal);
     }
 }

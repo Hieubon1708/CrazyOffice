@@ -8,12 +8,16 @@ public class PlayerController : MonoBehaviour
 
     public const float finalSpeed = 6;
 
-    public Enemy[] enemies;
+    public Bot[] enemies;
 
     [HideInInspector]
     public NavMeshAgent navMeshAgent;
     WeaponHandler weaponHandler;
-    CameraPlayer cameraPlayer;
+    [HideInInspector]
+    public Hand hand;
+
+    [HideInInspector]
+    public CameraPlayer cameraPlayer;
 
     public int hp;
 
@@ -22,7 +26,8 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector]
     public bool isMoving;
-    bool isRoting;
+    [HideInInspector]
+    public bool isRoting;
 
     [HideInInspector]
     public bool isLookAt;
@@ -64,7 +69,7 @@ public class PlayerController : MonoBehaviour
             navMeshAgent.updatePosition = value;
         }
     }
-    
+
     public bool IsStop
     {
         get
@@ -93,11 +98,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public Boss CurrentBoss
+    {
+        get
+        {
+            return enemies[index] as Boss;
+        }
+    }
+
+    public Enemy CurrentEnemy
+    {
+        get
+        {
+            return enemies[index] as Enemy;
+        }
+    }
+
     void Awake()
     {
         instance = this;
         navMeshAgent = GetComponent<NavMeshAgent>();
         cameraPlayer = GetComponentInChildren<CameraPlayer>();
+        hand = GetComponentInChildren<Hand>();
 
         Speed = finalSpeed;
 
@@ -127,7 +149,7 @@ public class PlayerController : MonoBehaviour
         Speed = enemies[index].playerStartSpeed;
     }
 
-    void ResetParam()
+    public void ResetParam()
     {
         isRoting = false;
         isMoving = true;
@@ -146,12 +168,25 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public bool isCollision;
 
-    float totalSpeedTime;
+    [HideInInspector]
+    public float totalSpeedTime;
+
+    bool isCantTouch;
+    bool isAttack;
+
+    [HideInInspector]
+    public bool isSoloBoss;
+
+    Vector2 dir;
+
+    [HideInInspector]
+    public float tRotate = 0.35f;
 
     public void Update()
     {
-        if (!navMeshAgent.enabled) return;
-        if (Input.GetMouseButtonDown(0))
+        if (!navMeshAgent.enabled || index == -1) return;
+
+        if (Input.GetMouseButtonDown(0) && !isAttack)
         {
             isDrag = true;
             startInput = Input.mousePosition;
@@ -162,9 +197,51 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
+            if (isSoloBoss && !isAttack && isDrag)
+            {
+                isAttack = true;
+
+                if (CurrentBoss is Boss1)
+                {
+                    UIController.instance.uIHandTutorial.Hide();
+
+                    Vector3 head = CurrentBoss.headStatic;
+
+                    bool isRight = false;
+
+                    if (Vector2.Distance(Input.mousePosition, startInput) < 5f)
+                    {
+                        startInput = Camera.main.WorldToScreenPoint(head);
+
+                        dir = (startInput - Input.mousePosition).normalized;
+
+                        isRight = Input.mousePosition.x > Screen.width / 2;
+                    }
+                    else
+                    {
+                        dir = (Input.mousePosition - startInput).normalized;
+
+                        isRight = startInput.x > Screen.width / 2;
+                    }
+
+                    Vector3 pos = transform.position + transform.forward * 0.5f;
+
+                    float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+                    hand.Slap(new Vector3(pos.x, head.y, pos.z), head, angle + 90, isRight);
+                }
+
+                else if(CurrentBoss is Boss2)
+                {
+                    Boss2 boss2 = (Boss2)CurrentBoss;
+
+                    boss2.EletricShock();
+                }
+            }
+
             isDrag = false;
         }
-        if (isDrag)
+        if (isDrag && !isCantTouch)
         {
             Vector3 currentInput = Input.mousePosition;
 
@@ -172,7 +249,7 @@ public class PlayerController : MonoBehaviour
             float xRotation = (startInput.x - currentInput.x) * 0.185f;
             float yRotation = (currentInput.y - startInput.y) * 0.3f;
 
-            float clampX = Mathf.Clamp(yRotation + startRotation.x, 0, 75);
+            float clampX = Mathf.Clamp(yRotation + startRotation.x, 0, 85);
             float clampY = Mathf.Clamp(xRotation + startRotation.y, 15, 165);
 
             Quaternion newLocalRotation = Quaternion.Euler(clampX, clampY, weapon.localEulerAngles.z);
@@ -192,43 +269,46 @@ public class PlayerController : MonoBehaviour
                 float distance = Vector2.Distance(currentInput, endInput);
                 if (distance > 40f && weaponHandler.collidersInContact.Count > 0)
                 {
-                    enemies[index].SubtractHp(1, (currentInput - endInput).normalized, weaponHandler.collidersInContact[0].attachedRigidbody);
+                    isRoting = true;
+                    weaponHandler.HitFx();
+                    CurrentEnemy.SubtractHp(1, (currentInput - endInput).normalized, weaponHandler.collidersInContact[0].attachedRigidbody);
                 }
             }
 
             endInput = Input.mousePosition;
         }
 
-        Vector3 targetPosition = enemies[index].transform.position;
+        Vector3 targetPosition = enemies[index].TargetPosition;
+
+        Vector3 targetRotation = enemies[index].TargetRotation;
+        Quaternion targetQuaternion = Quaternion.LookRotation(new Vector3(targetRotation.x, transform.position.y, targetRotation.z) - transform.position);
 
         // di chuyển về phía enemy, khi đến gần nhau thì dừng lại
+
         if (isMoving)
         {
             if (Speed < finalSpeed)
             {
                 totalSpeedTime += Time.deltaTime;
                 Speed = Mathf.Clamp(Speed + totalSpeedTime, 0, finalSpeed);
-                //Debug.Log(Speed);
             }
 
-            IsStop = false;
             Destination = targetPosition;
-            if (Vector3.Distance(new Vector3(transform.position.x, targetPosition.y, transform.position.z), targetPosition) < GameController.instance.distanceToKill && !navMeshAgent.isOnOffMeshLink)
+        }
+        else
+        {
+            isLookAt = (Quaternion.Angle(transform.rotation, targetQuaternion) < 5);
+
+            if (isLookAt)
             {
-                IsStop = true;
-                isMoving = false;
                 isRoting = true;
             }
         }
 
-        Vector3 targetHip = enemies[index].HipPos;
-        Quaternion targetRotation = Quaternion.LookRotation(new Vector3(targetHip.x, transform.position.y, targetHip.z) - transform.position);
-        isLookAt = (Quaternion.Angle(transform.rotation, targetRotation) < 5);
-
-        //khi đến dừng gần lại, thì quay nếu k đủ góc
+        //face to face
         if (isRoting)
         {
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.35f);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetQuaternion, tRotate);
         }
     }
 
@@ -251,23 +331,27 @@ public class PlayerController : MonoBehaviour
         isMoving = true;
 
         navMeshAgent.nextPosition = transform.position;
-        Destination = enemies[index].transform.position;
+        Destination = enemies[index].TargetPosition;
+
     }
 
     public void FightAgain()
     {
-        enemies[index].FightAgain();
+        PlayerController.instance.CurrentEnemy.FightAgain();
     }
 
     public void InitWeapon()
     {
-        if(weaponHandler != null)
+        if (weaponHandler != null)
         {
             Destroy(weaponHandler.gameObject);
         }
 
         GameObject weapon = Instantiate(GameController.instance.prePlayerWeapons[(int)GameManager.instance.CurrentWeapon], weaponContainer);
         this.weapon = weapon.transform;
+
+        weapon.transform.localRotation = Quaternion.Euler(35f, 90f, 0f);
+
         weaponHandler = weapon.GetComponent<WeaponHandler>();
     }
 
@@ -282,6 +366,33 @@ public class PlayerController : MonoBehaviour
         DOVirtual.DelayedCall(3.5f, delegate
         {
             UIController.instance.Lose();
-        });
+        }).SetUpdate(true);
+    }
+
+    public void SeeBoss()
+    {
+        isCantTouch = true;
+
+        StopMove();
+
+        weapon.transform.DOLocalRotateQuaternion(Quaternion.Euler(90f, 90f, 0f), 0.5f).OnComplete(delegate
+        {
+            weaponHandler.ThrowStraight(CurrentBoss.neck.position - weapon.position);
+        }).SetUpdate(true);
+    }
+
+    public void SlapBoss()
+    {
+        if (CurrentBoss is Boss1) (CurrentBoss as Boss1).Hit(dir);
+    }
+
+    public void CompletelyAttack()
+    {
+        isAttack = false;
+    }
+
+    public void Strangle()
+    {
+        hand.Strangle();
     }
 }

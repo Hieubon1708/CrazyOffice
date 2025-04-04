@@ -13,6 +13,6 @@ public class BossHealth : MonoBehaviour
 
     public void SubtractHp(int startHp, int currentHp)
     {
-        bar.DOFillAmount((float)currentHp / startHp, 0.25f);
+        bar.DOFillAmount((float)currentHp / startHp, 0.25f).SetUpdate(true);
     }
 }

@@ -7,11 +7,13 @@ public class Object : MonoBehaviour
     Rigidbody rb;
     BoxCollider col;
     public Vector3 targetHead;
+    LayerMask weaponLayer;
 
     public void Awake()
     {
         rb = GetComponent<Rigidbody>();
         rb.excludeLayers = LayerMask.GetMask("Enemy");
+        weaponLayer = LayerMask.GetMask("Weapon");
         col = transform.GetChild(0).GetComponent<BoxCollider>();
         rb.isKinematic = true;
         transform.localPosition = Vector3.zero;
@@ -25,7 +27,7 @@ public class Object : MonoBehaviour
 
         Vector3 dir = PlayerController.instance.transform.position - transform.position;
 
-        rb.velocity = new Vector3(dir.x, dir.y + 7, dir.z);
+        rb.velocity = new Vector3(dir.x, dir.y + 6.75f, dir.z);
 
         SetAngular(10f);
     }
@@ -49,7 +51,7 @@ public class Object : MonoBehaviour
 
             RaycastHit hit;
             Vector3 dir = transform.position - Vector3.forward - transform.position;
-            Physics.Raycast(transform.position, dir * 5, out hit);
+            Physics.Raycast(transform.position, dir * 5, out hit, 1, weaponLayer);
 
             if (hit.collider != null)
             {
@@ -61,11 +63,13 @@ public class Object : MonoBehaviour
 
                 Vector3 dirReverse = targetHead - transform.position;
 
-                rb.velocity = dirReverse.normalized * 15;
+                rb.velocity = dirReverse.normalized * 20;
             }
             else
             {
                 rb.useGravity = true;
+
+                col.enabled = false;
 
                 DOVirtual.DelayedCall(1f, delegate
                 {
@@ -81,7 +85,7 @@ public class Object : MonoBehaviour
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
-            PlayerController.instance.enemies[PlayerController.instance.index].DieByObject(collision.rigidbody);
+            PlayerController.instance.CurrentEnemy.DieByObject(collision.rigidbody);
 
             rb.useGravity = true;
 
@@ -97,12 +101,12 @@ public class Object : MonoBehaviour
             DOVirtual.DelayedCall(1f, delegate
             {
                 PlayerController.instance.ResumeMove();
-            });
-            
+            }).SetUpdate(true);
+
             DOVirtual.DelayedCall(1.5f, delegate
             {
                 PlayerController.instance.FightAgain();
-            });
+            }).SetUpdate(true);
         }
     }
 }

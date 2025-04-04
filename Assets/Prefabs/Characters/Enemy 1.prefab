@@ -1154,7 +1154,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
@@ -3924,19 +3924,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa26cc114bb181e43bf3030173f8a9b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isTarget: 0
+  distanceReady: 10
+  navMeshAgent: {fileID: 0}
+  playerAngularSpeed: 120
+  playerStartSpeed: 6
+  head: {fileID: 3995199342209879878}
   hpType: 0
   idleType: 0
   hp: 1
   isThrowObject: 0
-  head: {fileID: 3995199342209879878}
   spine: {fileID: 9022140933148555928}
   rbHat: {fileID: 0}
   rbArmor: {fileID: 0}
-  isTarget: 0
   isDamaging: 0
-  distanceReady: 10
-  playerAngularSpeed: 120
-  playerStartSpeed: 6
 --- !u!195 &8912128321307413231
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -4078,7 +4079,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1

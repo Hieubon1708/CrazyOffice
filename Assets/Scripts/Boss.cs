@@ -1,22 +1,63 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Boss : MonoBehaviour
+public abstract class Boss : Bot
 {
-    int hp = 6;
-    int startHp;
+    protected int hp = 6;
+    protected int startHp;
 
-    BossHealth bossHealth;
+    public Transform neck;
 
-    private void Awake()
+    protected BossHealth bossHealth;
+    public GameObject healthBar;
+
+    public Transform targetStrangle;
+
+    [HideInInspector]
+    public Vector3 headStatic;
+
+    public override Vector3 TargetRotation
     {
-        bossHealth = GetComponentInChildren<BossHealth>();
-        startHp = hp;
+        get
+        {
+            if (navMeshAgent.enabled) return rbs[0].position;
+            return transform.position;
+        }
     }
 
-    public void SubtractHp()
+    public override void Awake()
     {
-        if (hp <= 0) return;
-        hp -= 1;
-        bossHealth.SubtractHp(startHp, startHp - hp);
+        base.Awake();
+
+        bossHealth = GetComponentInChildren<BossHealth>(true);
+
+        startHp = hp;
+
+        healthBar.SetActive(false);
+    }
+
+    public abstract void SubtractHp();
+
+    public void Strangle()
+    {
+        navMeshAgent.enabled = false;
+        transform.SetParent(PlayerController.instance.transform);
+
+        animator.SetTrigger("Strangle");
+    }
+
+    public void HitFirst()
+    {
+        animator.SetTrigger("HitFirst");
+    }
+
+
+    public void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            PlayerController.instance.SeeBoss();
+        }
     }
 }

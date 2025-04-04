@@ -3,7 +3,7 @@ using RootMotion.Dynamics;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Enemy : MonoBehaviour
+public class Enemy : Bot
 {
     public GameController.HpType hpType;
     public GameController.IdleType idleType;
@@ -13,7 +13,6 @@ public class Enemy : MonoBehaviour
 
     public bool isThrowObject;
 
-    public Transform head;
     public Transform spine;
 
     [HideInInspector]
@@ -22,39 +21,18 @@ public class Enemy : MonoBehaviour
     [HideInInspector]
     public Rigidbody rbArmor;
 
-    Animator animator;
-    Rigidbody[] rbs;
-    NavMeshAgent navMeshAgent;
     EnemyEvent enemyEvent;
-    PuppetMaster puppetMaster;
-
-    [HideInInspector]
-    public bool isTarget;
+   
     [HideInInspector]
     public bool isDamaging;
-
-    public float distanceReady = 10f;
-    public float playerAngularSpeed;
-    public float playerStartSpeed;
 
     bool isPrepareForBattle;
 
     LayerMask weaponLayer;
 
-    public Vector3 HipPos
+    public override void Awake()
     {
-        get
-        {
-            return rbs[0].position;
-        }
-    }
-
-    public void Awake()
-    {
-        animator = GetComponentInChildren<Animator>();
-        rbs = GetComponentsInChildren<Rigidbody>();
-        navMeshAgent = GetComponent<NavMeshAgent>();
-        puppetMaster = GetComponentInChildren<PuppetMaster>();
+        base.Awake();
 
         enemyEvent = GetComponentInChildren<EnemyEvent>();
 
@@ -97,7 +75,7 @@ public class Enemy : MonoBehaviour
             DOVirtual.DelayedCall(1.5f, delegate
             {
                 PlayerController.instance.ResumeMove();
-            });
+            }).SetUpdate(true);
         }
         else if (this.hp == 1)
         {
@@ -116,7 +94,7 @@ public class Enemy : MonoBehaviour
             DOVirtual.DelayedCall(1.5f, delegate
             {
                 PlayerController.instance.ResumeMove();
-            });
+            }).SetUpdate(true);
         }
         else
         {
@@ -142,7 +120,7 @@ public class Enemy : MonoBehaviour
             {
                 PlayerController.instance.ResumeMove();
                 PlayerController.instance.Move();
-            });
+            }).SetUpdate(true);
         }
     }
 
@@ -159,7 +137,9 @@ public class Enemy : MonoBehaviour
             {
                 // check khoảng cách nếu đến 1 khoảng thì chuẩn bị tư thế tiến đấu, hoặc ném vật
                 Vector3 target = PlayerController.instance.transform.position;
+
                 float distance = Vector3.Distance(transform.position, new Vector3(target.x, transform.position.y, target.z));
+
                 if (distance <= distanceReady)
                 {
                     if (!isPrepareForBattle)
@@ -189,18 +169,13 @@ public class Enemy : MonoBehaviour
                     transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.1f);
                     float angle = Quaternion.Angle(transform.rotation, targetRotation);
 
-                    // nếu đủ tầm thì chạy vào gần player, 2 con tiến vào nhau cùng lúc
-                    /*if (angle < 1 && distance > GameController.instance.distanceToKill && PlayerController.instance.navMeshAgent.updatePosition)
-                    {
-                        navMeshAgent.SetDestination(PlayerController.instance.transform.position);
-                    }*/
-
-                    // đủ tầm thì stop r tấn công
                     if (distance <= GameController.instance.distanceToKill)
                     {
-                        navMeshAgent.isStopped = true;
                         isTarget = false;
-                        Kill();
+
+                        PlayerController.instance.StopMove();
+
+                        //Kill();
                     }
                 }
             }

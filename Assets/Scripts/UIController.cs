@@ -19,9 +19,13 @@ public class UIController : MonoBehaviour
     public TextMeshProUGUI textCash;
     public TextMeshProUGUI textLevel;
 
+    [HideInInspector]
+    public UIHandTutorial uIHandTutorial;
+
     void Awake()
     {
         instance = this;
+        uIHandTutorial = GetComponentInChildren<UIHandTutorial>();
     }
 
     public void Start()
@@ -41,7 +45,7 @@ public class UIController : MonoBehaviour
 
     public void Win()
     {
-        GameManager.instance.Level++;
+        //GameManager.instance.Level++;
         ShowPanelWin();
     }
     

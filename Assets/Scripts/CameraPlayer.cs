@@ -21,6 +21,6 @@ public class CameraPlayer : MonoBehaviour
 
         rb.velocity = dir * 3;
 
-        transform.DOShakeRotation(0.5f);
+        transform.DOShakeRotation(0.5f).SetUpdate(true);
     }
 }

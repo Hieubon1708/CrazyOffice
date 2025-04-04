@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour
 
     public GameObject[] preObjectToThrows;
     public GameObject[] prePlayerWeapons;
+    public ParticleSystem fxhit;
 
     public GameObject preHat1;
     public GameObject preHat2;
@@ -104,5 +105,14 @@ public class GameController : MonoBehaviour
                     return;
                 }
         }
+    }
+
+    public void HitFx(Vector3 position)
+    {
+        Vector3 dir = PlayerController.instance.cameraPlayer.transform.position - position;
+
+        fxhit.transform.position = position + dir.normalized * 0.5f;
+
+        fxhit.Play();
     }
 }
