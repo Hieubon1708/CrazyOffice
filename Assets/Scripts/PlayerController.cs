@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -126,11 +127,6 @@ public class PlayerController : MonoBehaviour
         InitWeapon();
     }
 
-    public void Start()
-    {
-        Move();
-    }
-
     public void Move()
     {
         if (index + 1 == enemies.Length)
@@ -193,6 +189,16 @@ public class PlayerController : MonoBehaviour
             endInput = Input.mousePosition;
             startRotation = weapon.localEulerAngles;
             startPosition = weapon.localPosition;
+
+            if (isSoloBoss)
+            {
+                if (CurrentBoss is Boss4)
+                {
+                    Boss4 boss4 = (Boss4)CurrentBoss;
+
+                    boss4.HeadDip();
+                }
+            }
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -230,12 +236,23 @@ public class PlayerController : MonoBehaviour
 
                     hand.Slap(new Vector3(pos.x, head.y, pos.z), head, angle + 90, isRight);
                 }
-
                 else if(CurrentBoss is Boss2)
                 {
                     Boss2 boss2 = (Boss2)CurrentBoss;
 
                     boss2.EletricShock();
+                }
+                else if(CurrentBoss is Boss3)
+                {
+                    Boss3 boss3 = (Boss3)CurrentBoss;
+
+                    boss3.Cut();
+                }
+                else if(CurrentBoss is Boss4)
+                {
+                    Boss4 boss4 = (Boss4)CurrentBoss;
+
+                    boss4.HeadDipExit();
                 }
             }
 
@@ -369,11 +386,15 @@ public class PlayerController : MonoBehaviour
         }).SetUpdate(true);
     }
 
-    public void SeeBoss()
+    public IEnumerator SeeBoss()
     {
+        PlayerController.instance.tRotate = 0.025f;
+
         isCantTouch = true;
 
         StopMove();
+
+        yield return new WaitUntil(() => isLookAt);
 
         weapon.transform.DOLocalRotateQuaternion(Quaternion.Euler(90f, 90f, 0f), 0.5f).OnComplete(delegate
         {

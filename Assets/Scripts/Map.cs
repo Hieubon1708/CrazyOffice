@@ -12,4 +12,9 @@ public class Map : MonoBehaviour
         navMeshSurface.navMeshData = navMeshData;
         navMeshSurface.AddData();
     }
+
+    public void Start()
+    {
+        UIController.instance.LoadData();
+    }
 }

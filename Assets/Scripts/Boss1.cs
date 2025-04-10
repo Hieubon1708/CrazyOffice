@@ -42,6 +42,8 @@ public class Boss1 : Boss
 
         animator.SetTrigger("Hit");
 
+        PlayerController.instance.transform.DOShakeRotation(0.25f, 5f, 25).SetUpdate(true);
+
         SubtractHp();
     }
 

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -60,31 +61,47 @@ public class Hand : MonoBehaviour
         yield return new WaitUntil(() => PlayerController.instance.navMeshAgent.remainingDistance == 0);
         yield return new WaitForSeconds(0.5f);
 
-        handPivot.SetActive(false);
-
         Boss boss = PlayerController.instance.CurrentBoss;
 
-        if (boss is Boss1)
+        switch (boss)
         {
-            Boss1 boss1 = (Boss1)boss;
+            case Boss1:
 
-            boss1.DropToilet();
+                Boss1 boss1 = (Boss1)boss;
 
-            PlayerController.instance.index = -1;
-        }
-        else if (boss is Boss2)
-        {
-            Boss2 boss2 = (Boss2)boss;
+                boss1.DropToilet();
 
-            boss2.Sit();
-        }
-    }
+                PlayerController.instance.index = -1;
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            PlayerController.instance.CurrentBoss.animator.SetTrigger("Sit");
+                handPivot.SetActive(false);
+
+                break;
+
+            case Boss2:
+
+                Boss2 boss2 = (Boss2)boss;
+
+                boss2.Sit();
+
+                handPivot.SetActive(false);
+
+                break;
+
+            case Boss3:
+
+                Boss3 boss3 = (Boss3)boss;
+
+                boss3.KneelDown(handPivot.transform);
+
+                break;
+
+            case Boss4:
+
+                Boss4 boss4 = (Boss4)boss;
+
+                boss4.DropDown(handPivot.transform);
+
+                break;
         }
     }
 }

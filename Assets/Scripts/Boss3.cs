@@ -1,0 +1,187 @@
+using DG.Tweening;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.XR;
+using static UnityEngine.Rendering.VirtualTexturing.Debugging;
+
+public class Boss3 : Boss
+{
+    public Transform torture;
+
+    public GameObject hand;
+
+    public Transform handPosition;
+
+    public Transform woodBar;
+
+    public Transform[] afterStrangle;
+
+    public Transform pointAfterKneel;
+    public Transform lookAtAfterKneel;
+
+    public Transform knife;
+
+    bool isAfterKneel;
+
+    public Rigidbody headCut;
+
+    public GameObject[] necks;
+
+    public ParticleSystem blood;
+
+    public override Vector3 TargetPosition
+    {
+        get
+        {
+            if (isAfterKneel)
+            {
+                return pointAfterKneel.position;
+            }
+
+            if (navMeshAgent.enabled) return transform.position;
+            return torture.position;
+        }
+    }
+
+    public override Vector3 TargetRotation
+    {
+        get
+        {
+            if (isAfterKneel)
+            {
+                return lookAtAfterKneel.position;
+            }
+
+            if (navMeshAgent.enabled) return rbs[0].position;
+            return transform.position;
+        }
+    }
+
+    public override void SubtractHp()
+    {
+        if (hp <= 0) return;
+        hp -= 1;
+
+        blood.Play();
+
+        bossHealth.SubtractHp(startHp, startHp - hp);
+
+        if (hp == 0)
+        {
+            foreach (GameObject n in necks)
+            {
+                n.transform.localScale = Vector3.zero;
+            }
+
+            headCut.gameObject.SetActive(true);
+            headCut.AddForce(new Vector3(0, 10, 1), ForceMode.Impulse);
+
+            PlayerController.instance.isSoloBoss = false;
+
+            healthBar.SetActive(false);
+        }
+    }
+
+    public void FixedUpdate()
+    {
+        if (PlayerController.instance != null && navMeshAgent.enabled)
+        {
+            if (isTarget)
+            {
+                Vector3 target = PlayerController.instance.transform.position;
+
+                float distance = Vector3.Distance(transform.position, new Vector3(target.x, transform.position.y, target.z));
+
+                if (distance <= GameController.instance.distanceToKill)
+                {
+                    isTarget = false;
+
+                    PlayerController.instance.StopMove();
+
+                    PlayerController.instance.Strangle();
+                }
+            }
+        }
+    }
+
+    public void KneelDown(Transform hand)
+    {
+        hand.gameObject.SetActive(false);
+
+        animator.SetTrigger("Idle");
+
+        transform.DOMoveY(transform.position.y - 1f, 0.25f).OnComplete(delegate
+        {
+            DOVirtual.DelayedCall(0.5f, delegate
+            {
+                hand.gameObject.SetActive(true);
+
+                hand.position = afterStrangle[1].position;
+
+                hand.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
+                hand.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
+                {
+                    transform.DORotate(new Vector3(0f, 180f, 0f), 0.5f, RotateMode.WorldAxisAdd).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
+                    {
+                        woodBar.DOLocalMoveY(1.26f, 0.25f).SetDelay(0.25f).SetUpdate(true).OnComplete(delegate
+                        {
+                            animator.SetTrigger("Kneel");
+                        });
+                    });
+                });
+            }).SetUpdate(true);
+        }).SetUpdate(true);
+    }
+
+    public void Cut()
+    {
+        if (hand.activeSelf) hand.SetActive(false);
+
+        knife.DOLocalMoveY(0.15f, 0.05f).OnComplete(delegate
+        {
+            animator.SetTrigger("Cut");
+            SubtractHp();
+            PlayerController.instance.CompletelyAttack();
+            PlayerController.instance.transform.DOShakeRotation(0.25f, 5f, 50).SetUpdate(true);
+            knife.DOLocalMoveY(1.070468f, 0.25f).SetUpdate(true);
+        }).SetUpdate(true);
+    }
+
+    public IEnumerator AfterKneel()
+    {
+        transform.SetParent(GameController.instance.levelObject.transform);
+
+        PlayerController.instance.hand.handPivot.SetActive(false);
+
+        woodBar.DOLocalMoveY(0.3312885f, 0.25f).SetUpdate(true).OnComplete(delegate
+        {
+            isAfterKneel = true;
+
+            PlayerController.instance.navMeshAgent.angularSpeed = 0;
+
+            PlayerController.instance.ResumeMove();
+
+            PlayerController.instance.tRotate = 0.025f;
+            PlayerController.instance.isRoting = true;
+        });
+
+        yield return new WaitUntil(() => isAfterKneel);
+
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+
+        yield return new WaitUntil(() => PlayerController.instance.navMeshAgent.remainingDistance == 0);
+
+        hand.transform.position = Camera.main.WorldToScreenPoint(handPosition.position);
+
+        hand.SetActive(true);
+
+        healthBar.SetActive(true);
+
+        PlayerController.instance.isSoloBoss = true;
+    }
+}

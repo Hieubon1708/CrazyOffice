@@ -1,6 +1,8 @@
+using DG.Tweening;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using static GameController;
 
 public class UIController : MonoBehaviour
@@ -22,6 +24,9 @@ public class UIController : MonoBehaviour
     [HideInInspector]
     public UIHandTutorial uIHandTutorial;
 
+    public UIHandTutorial hand;
+    public Image fade;
+
     void Awake()
     {
         instance = this;
@@ -32,15 +37,17 @@ public class UIController : MonoBehaviour
     {
         shop.LoadData();
         setting.LoadData();
-
-        textGold.text = GameManager.instance.Gold.ToString();
-        textCash.text = GameManager.instance.Cash.ToString();
     }
 
     public void LoadData()
     {
         textLevel.text = "Level " + GameManager.instance.Level;
         progress.LoadData();
+
+        fade.gameObject.SetActive(true);
+        hand.gameObject.SetActive(true);
+
+        hand.Show();
     }
 
     public void Win()
@@ -48,7 +55,7 @@ public class UIController : MonoBehaviour
         //GameManager.instance.Level++;
         ShowPanelWin();
     }
-    
+
     public void Lose()
     {
         ShowPanelLose();

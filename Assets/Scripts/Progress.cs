@@ -3,32 +3,22 @@ using UnityEngine.UI;
 
 public class Progress : MonoBehaviour
 {
-    Image[] dots;
+    ProgressChild[] progressChildrens;
 
     private void Awake()
     {
-        dots = GetComponentsInChildren<Image>();
+        progressChildrens = GetComponentsInChildren<ProgressChild>();
     }
 
     public void LoadData()
     {
-        int index = GameManager.instance.Level;
+        int level = GameManager.instance.Level;
 
-        while (index > 5)
-        {
-            index -= 5;
-        }
+        int n = level / 5;
 
-        for (int i = 0; i < dots.Length; i++)
+        for (int i = 0; i < progressChildrens.Length; i++)
         {
-            if(i < index)
-            {
-                dots[i].color = Color.red;
-            }
-            else
-            {
-                dots[i].color = Color.white;
-            }
+            progressChildrens[i].SetValue(n * 5 + i < level, n * 5 + i + 1);
         }
     }
 }

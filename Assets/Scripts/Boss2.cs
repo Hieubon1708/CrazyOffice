@@ -24,6 +24,10 @@ public class Boss2 : Boss
 
     public Transform handle;
 
+    public ParticleSystem fxElectric;
+
+    bool isElectric;
+
     public override Vector3 TargetPosition
     {
         get
@@ -60,6 +64,8 @@ public class Boss2 : Boss
 
         if (hp == 0)
         {
+            isElectric = false;
+
             PlayerController.instance.isSoloBoss = false;
 
             healthBar.SetActive(false);
@@ -122,7 +128,7 @@ public class Boss2 : Boss
             PlayerController.instance.isRoting = true;
         }).SetUpdate(true);
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitUntil(() => isAfterLockChair);
 
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
@@ -143,22 +149,35 @@ public class Boss2 : Boss
     {
         if (hand.activeSelf) hand.SetActive(false);
 
-        int step = 0;
-
-        int loop = hp == 1 ? 1 : 2;
-
-        handle.DORotate(new Vector3(180f, 0f, 0f), 0.25f, RotateMode.LocalAxisAdd).SetLoops(loop, LoopType.Yoyo).OnStepComplete(delegate
+        handle.DORotate(new Vector3(180f, 0f, 0f), 0.25f, RotateMode.LocalAxisAdd).OnComplete(delegate
         {
-            if (step == 0)
-            {
-                PlayerController.instance.isRoting = false;
+            isElectric = true;
 
-                animator.SetTrigger("ElectricShock");
-                SubtractHp();
-                PlayerController.instance.CompletelyAttack();
-                PlayerController.instance.transform.DOShakeRotation(0.25f, 5f, 50).SetUpdate(true);
-            }
-            step++;
+            fxElectric.Play();
+
+            animator.SetTrigger("ElectricShock");
         }).SetUpdate(true);
+
+        PlayerController.instance.CompletelyAttack();
+    }
+
+    float time;
+    float totalTime;
+
+    public void Update()
+    {
+        if (isElectric)
+        {
+            totalTime += Time.deltaTime;
+
+            if (totalTime >= time)
+            {
+                time += 0.1f;
+
+                SubtractHp();
+
+                PlayerController.instance.transform.DOShakeRotation(0.1f, 2.5f, 1).SetUpdate(true);
+            }
+        }
     }
 }

@@ -68,7 +68,7 @@ public class WeaponHandler : MonoBehaviour
         rb.constraints = RigidbodyConstraints.None;
         rb.useGravity = false;
         rb.velocity = dir.normalized * 10;
-        rb.angularVelocity = Vector3.right * 20;
+        rb.angularVelocity = -transform.right * 20;
     }
 
     void Update()

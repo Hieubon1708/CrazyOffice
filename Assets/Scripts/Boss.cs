@@ -57,7 +57,7 @@ public abstract class Boss : Bot
     {
         if (other.CompareTag("Player"))
         {
-            PlayerController.instance.SeeBoss();
+            StartCoroutine(PlayerController.instance.SeeBoss());
         }
     }
 }

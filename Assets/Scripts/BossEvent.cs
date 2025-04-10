@@ -15,7 +15,7 @@ public class BossEvent : MonoBehaviour
 
     public void Rotate()
     {
-        parent.DOLocalRotate(new Vector3(0, 180, 0), clip.length).SetUpdate(true).OnComplete(delegate
+        parent.DOLocalRotate(new Vector3(0, parent.localEulerAngles.y + 90, 0), clip.length).SetUpdate(true).OnComplete(delegate
         {
             Boss boss = PlayerController.instance.CurrentBoss;
 
@@ -24,5 +24,19 @@ public class BossEvent : MonoBehaviour
                 (boss as Boss1).SetHeadStatic();
             }
         }).SetUpdate(true);
+    }
+
+    public void AfterKneel()
+    {
+        Boss3 boss3 = (Boss3)PlayerController.instance.CurrentBoss;
+
+        StartCoroutine(boss3.AfterKneel());
+    }
+    
+    public void AfterHeadDip()
+    {
+        Boss4 boss4 = (Boss4)PlayerController.instance.CurrentBoss;
+
+        boss4.AfterHeadDip();
     }
 }

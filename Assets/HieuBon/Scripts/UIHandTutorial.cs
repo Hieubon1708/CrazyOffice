@@ -8,41 +8,16 @@ public class UIHandTutorial : MonoBehaviour
     public CanvasGroup canvasGroup;
     Vector3[] paths;
 
-    public void Awake()
-    {
-        DOVirtual.DelayedCall(0.5f, delegate
-        {
-            if (paths == null || paths.Length == 0)
-            {
-                paths = new Vector3[path.Length];
-                for (int i = 0; i < paths.Length; i++)
-                {
-                    paths[i] = path[i].position;
-                }
-            }
-        }).SetUpdate(true);
-    }
-
     public void PlayHand()
     {
-        float time = 0;
-
-        if (paths == null || paths.Length == 0)
+        paths = new Vector3[path.Length];
+        for (int i = 0; i < paths.Length; i++)
         {
-            time = 0.5f;
-
-            paths = new Vector3[path.Length];
-            for (int i = 0; i < paths.Length; i++)
-            {
-                paths[i] = path[i].position;
-            }
+            paths[i] = path[i].position;
         }
 
-        DOVirtual.DelayedCall(time, delegate
-        {
-            hand.position = paths[0];
-            hand.DOPath(paths, 3f, PathType.CatmullRom).SetEase(Ease.Linear).SetLoops(-1, LoopType.Restart);
-        }).SetUpdate(true);
+        hand.position = paths[0];
+        hand.DOPath(paths, 3f, PathType.CatmullRom).SetEase(Ease.Linear).SetLoops(-1, LoopType.Restart);
     }
 
     public void Hide()
