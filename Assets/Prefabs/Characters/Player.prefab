@@ -5423,12 +5423,14 @@ MonoBehaviour:
   hp: 1
   index: -1
   isMoving: 0
+  isRoting: 0
   isLookAt: 0
   weaponContainer: {fileID: 783113570628695284}
   weapon: {fileID: 0}
   isCollision: 0
   totalSpeedTime: 0
   isSoloBoss: 0
+  tRotate: 0.35
 --- !u!195 &277442733230015271
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5668,6 +5670,7 @@ GameObject:
   - component: {fileID: 3169105605042482663}
   - component: {fileID: 7113965600261497963}
   - component: {fileID: 6849702573507127456}
+  - component: {fileID: 2332035951629683741}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
@@ -5758,6 +5761,18 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &2332035951629683741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7917002837266192585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9030da5f3558732469bfe5fa979d93b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8215546696312936095
 GameObject:
   m_ObjectHideFlags: 0

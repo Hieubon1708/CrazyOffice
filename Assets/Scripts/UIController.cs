@@ -27,6 +27,12 @@ public class UIController : MonoBehaviour
     public UIHandTutorial hand;
     public Image fade;
 
+    public Camera camUI;
+
+    public GameObject buttonShop;
+    public GameObject buttonNoAds;
+    public GameObject buttonSetting;
+
     void Awake()
     {
         instance = this;
@@ -39,15 +45,31 @@ public class UIController : MonoBehaviour
         setting.LoadData();
     }
 
+    void FirstUI(bool isActive)
+    {
+        progress.gameObject.SetActive(isActive);
+        buttonShop.SetActive(isActive);
+        buttonNoAds.SetActive(isActive);
+        buttonSetting.SetActive(isActive);
+        fade.gameObject.SetActive(isActive);
+        hand.gameObject.SetActive(isActive);
+    }
+
     public void LoadData()
     {
         textLevel.text = "Level " + GameManager.instance.Level;
         progress.LoadData();
 
-        fade.gameObject.SetActive(true);
-        hand.gameObject.SetActive(true);
-
         hand.Show();
+
+        FirstUI(true);
+    }
+
+    public void Play()
+    {
+        FirstUI(false);
+
+        PlayerController.instance.Move();
     }
 
     public void Win()

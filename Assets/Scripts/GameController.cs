@@ -27,7 +27,7 @@ public class GameController : MonoBehaviour
 
     public enum WeaponType
     {
-        BaseballBat, ChibiMoon, Dubinka, Kendo, PoopShit, None
+        a, b, c, d, e, f, g, h, i
     }
 
     public enum IdleType
@@ -51,7 +51,7 @@ public class GameController : MonoBehaviour
 
         if (levelObject != null) Destroy(levelObject);
 
-        levelObject = Instantiate(Resources.Load<GameObject>(level.ToString()));
+        levelObject = Instantiate(Resources.Load<GameObject>(level.ToString()), transform);
     }
 
     public int GetHp(HpType hpType)

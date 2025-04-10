@@ -36,23 +36,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public int Cash
-    {
-        get
-        {
-            return PlayerPrefs.GetInt("Cash", 0);
-        }
-        set
-        {
-            PlayerPrefs.SetInt("Cash", value);
-        }
-    }
-
     public WeaponType CurrentWeapon
     {
         get
         {
-            return (WeaponType)PlayerPrefs.GetInt("CurrentWeapon", (int)WeaponType.BaseballBat);
+            return (WeaponType)PlayerPrefs.GetInt("CurrentWeapon", (int)WeaponType.a);
         }
         set
         {
@@ -76,6 +64,30 @@ public class GameManager : MonoBehaviour
         {
             string txt = JsonConvert.SerializeObject(value);
             PlayerPrefs.SetString("WeaponsUnlocked", txt);
+        }
+    }
+
+    public bool IsAtiveSound
+    {
+        get
+        {
+            return PlayerPrefs.GetInt("Sound", 1) == 1;
+        }
+        set
+        {
+            PlayerPrefs.SetInt("Sound", value ? 1 : 0);
+        }
+    }
+
+    public bool IsActiveVibrate
+    {
+        get
+        {
+            return PlayerPrefs.GetInt("Vibrate", 1) == 1;
+        }
+        set
+        {
+            PlayerPrefs.SetInt("Vibrate", value ? 1 : 0);
         }
     }
 
