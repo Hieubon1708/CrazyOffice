@@ -18,7 +18,6 @@ public class UIController : MonoBehaviour
     public GameObject layerCover;
 
     public TextMeshProUGUI textGold;
-    public TextMeshProUGUI textCash;
     public TextMeshProUGUI textLevel;
 
     [HideInInspector]
@@ -33,6 +32,8 @@ public class UIController : MonoBehaviour
     public GameObject buttonNoAds;
     public GameObject buttonSetting;
 
+    int totalEarn = 28;
+
     void Awake()
     {
         instance = this;
@@ -43,6 +44,8 @@ public class UIController : MonoBehaviour
     {
         shop.LoadData();
         setting.LoadData();
+
+        UpdateGold();
     }
 
     void FirstUI(bool isActive)
@@ -53,6 +56,11 @@ public class UIController : MonoBehaviour
         buttonSetting.SetActive(isActive);
         fade.gameObject.SetActive(isActive);
         hand.gameObject.SetActive(isActive);
+    }
+
+    public void UpdateGold()
+    {
+        textGold.text = GameManager.instance.Gold.ToString();
     }
 
     public void LoadData()
@@ -74,8 +82,14 @@ public class UIController : MonoBehaviour
 
     public void Win()
     {
-        //GameManager.instance.Level++;
-        ShowPanelWin();
+        GameManager.instance.Level++;
+        GameManager.instance.PercentReceiveObject += 25;
+        GameManager.instance.Gold += totalEarn;
+
+        DOVirtual.DelayedCall(1f, delegate
+        {
+            ShowPanelWin();
+        });
     }
 
     public void Lose()
@@ -103,19 +117,6 @@ public class UIController : MonoBehaviour
         panelLose.SetActive(false);
     }
 
-    public void AddWeapon(WeaponType weaponType)
-    {
-        List<WeaponType> weaponsUnlocked = new List<WeaponType>(GameManager.instance.WeaponsUnlocked);
-        weaponsUnlocked.Add(weaponType);
-        GameManager.instance.WeaponsUnlocked = weaponsUnlocked;
-    }
-
-    public void ChooseWeapon(WeaponType weaponType)
-    {
-        GameManager.instance.CurrentWeapon = weaponType;
-        shop.ResetLightsSelectBox();
-    }
-
     public void NextLevel()
     {
         HidePanelWin();
@@ -126,5 +127,15 @@ public class UIController : MonoBehaviour
     {
         HidePanelLose();
         GameController.instance.LoadLevel(GameManager.instance.Level);
+    }
+
+    public void ShowGoldIncrease()
+    {
+        int totalGold = GameManager.instance.Gold;
+
+        DOVirtual.Int(totalGold - totalEarn, totalGold, 0.5f, (v) =>
+        {
+            textGold.text = v.ToString();
+        });
     }
 }

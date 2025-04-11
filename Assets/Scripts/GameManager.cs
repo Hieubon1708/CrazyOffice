@@ -10,6 +10,10 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+
+        PlayerPrefs.DeleteAll();
+
+        PercentReceiveObject = 50;
     }
 
     public int Level
@@ -33,6 +37,30 @@ public class GameManager : MonoBehaviour
         set
         {
             PlayerPrefs.SetInt("Gold", value);
+        }
+    }
+    
+    public int PercentReceiveObject
+    {
+        get
+        {
+            return PlayerPrefs.GetInt("PercentReceiveObject", 0);
+        }
+        set
+        {
+            PlayerPrefs.SetInt("PercentReceiveObject", value);
+        }
+    }
+    
+    public WeaponType CurrentReceiveObject
+    {
+        get
+        {
+            return (WeaponType)PlayerPrefs.GetInt("CurrentReceiveObject");
+        }
+        set
+        {
+            PlayerPrefs.SetInt("PercentReceiveObject", (int)value);
         }
     }
 

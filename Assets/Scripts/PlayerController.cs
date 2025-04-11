@@ -131,6 +131,9 @@ public class PlayerController : MonoBehaviour
     {
         if (index + 1 == enemies.Length)
         {
+            index = -1;
+            IsStop = true;
+
             UIController.instance.Win();
             return;
         }

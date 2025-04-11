@@ -8,8 +8,6 @@ public class Setting : MonoBehaviour
 
     SettingOption[] settingOptions;
 
-    public GameObject background;
-
     private void Awake()
     {
         settingOptions = GetComponentsInChildren<SettingOption>(true);
@@ -41,12 +39,10 @@ public class Setting : MonoBehaviour
     public void Show()
     {
         panel.SetActive(true);
-        background.SetActive(true);
     }
 
     public void Hide()
     {
         panel.SetActive(false);
-        background.SetActive(false);
     }
 }
