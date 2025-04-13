@@ -10,21 +10,22 @@ public class Enemy : Bot
 
     [HideInInspector]
     public int hp;
+    int startHp;
 
     public bool isThrowObject;
 
     public Transform spine;
 
-    [HideInInspector]
     public Rigidbody rbHat;
 
-    [HideInInspector]
     public Rigidbody rbArmor;
 
     EnemyEvent enemyEvent;
-   
+
     [HideInInspector]
-    public bool isDamaging;
+    public bool isDamage;
+    [HideInInspector]
+    public bool isExcludeLayer;
 
     bool isPrepareForBattle;
 
@@ -39,6 +40,7 @@ public class Enemy : Bot
         weaponLayer = LayerMask.GetMask("Weapon");
 
         hp = GameController.instance.GetHp(hpType);
+        startHp = hp;
 
         GameController.instance.SetClothes(head, spine, hpType, this);
     }
@@ -51,50 +53,20 @@ public class Enemy : Bot
 
     public void SubtractHp(int hp, Vector2 dir, Rigidbody rb)
     {
-        if (this.hp <= 0 || isDamaging) return;
+        if (this.hp <= 0 || isExcludeLayer) return;
 
         //Debug.Log(rb.name);
 
         ExcludePlayerWeapon(true);
 
         this.hp -= hp;
-        if (this.hp == 2)
+        if (this.hp == 1)
         {
             animator.SetTrigger("HitDouble");
-
-            rbHat.isKinematic = false;
-
-            rbHat.transform.SetParent(GameController.instance.levelObject.transform);
-
-            rbHat.angularVelocity = RandomAngularVelocity() * 5;
-
-            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
-
-            rbHat.AddForce(localForce, ForceMode.Impulse);
-
-            DOVirtual.DelayedCall(1.5f, delegate
-            {
-                PlayerController.instance.ResumeMove();
-            }).SetUpdate(true);
         }
-        else if (this.hp == 1)
+        else if (this.hp == 2)
         {
             animator.SetTrigger("HitDouble");
-
-            rbArmor.isKinematic = false;
-
-            rbArmor.transform.SetParent(GameController.instance.levelObject.transform);
-
-            rbArmor.angularVelocity = RandomAngularVelocity() * 5;
-
-            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
-
-            rbArmor.AddForce(localForce, ForceMode.Impulse);
-
-            DOVirtual.DelayedCall(1.5f, delegate
-            {
-                PlayerController.instance.ResumeMove();
-            }).SetUpdate(true);
         }
         else
         {
@@ -105,6 +77,7 @@ public class Enemy : Bot
             puppetMaster.mode = PuppetMaster.Mode.Active;
 
             puppetMaster.muscleSpring = 0;
+            puppetMaster.muscleDamper = 50;
 
             for (int i = 0; i < rbs.Length; i++)
             {
@@ -124,13 +97,61 @@ public class Enemy : Bot
         }
     }
 
+    public void FallArmor()
+    {
+        if (startHp == 3)
+        {
+            if (hp == 1)
+            {
+                rbArmor.isKinematic = false;
+
+                rbArmor.transform.SetParent(GameController.instance.levelObject.transform);
+
+                rbArmor.angularVelocity = RandomAngularVelocity() * 5;
+
+                Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
+
+                rbArmor.AddForce(localForce, ForceMode.Impulse);
+            }
+            else if (hp == 2)
+            {
+                FallHat();
+            }
+
+        }
+        else
+        {
+            FallHat();
+        }
+    }
+
+    public void FallHat()
+    {
+        rbHat.isKinematic = false;
+
+        rbHat.transform.SetParent(GameController.instance.levelObject.transform);
+
+        rbHat.angularVelocity = RandomAngularVelocity() * 5;
+
+        Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
+
+        rbHat.AddForce(localForce, ForceMode.Impulse);
+    }
+
     public void ExcludePlayerWeapon(bool isExclude)
     {
-        isDamaging = isExclude;
+        isExcludeLayer = isExclude;
+    }
+
+    public void AfterHit()
+    {
+        isDamage = false;
+        isTarget = true;
     }
 
     public void FixedUpdate()
     {
+        if (isDamage) return;
         if (PlayerController.instance != null && navMeshAgent.enabled)
         {
             if (isTarget)
@@ -174,8 +195,7 @@ public class Enemy : Bot
                         isTarget = false;
 
                         PlayerController.instance.StopMove();
-
-                        //Kill();
+                        Kill();
                     }
                 }
             }
@@ -184,20 +204,10 @@ public class Enemy : Bot
 
     public void Update()
     {
-        /*if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S))
         {
-            rbHat.isKinematic = false;
-
-            animator.SetTrigger("HitDouble");
-
-            rbHat.transform.SetParent(GameController.instance.levelObject.transform);
-
-            rbHat.angularVelocity = RandomAngularVelocity() * 5;
-
-            Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(10f, 12f), Random.Range(-10f, -12f)));
-
-            rbHat.AddForce(localForce, ForceMode.Impulse);
-        }*/
+            AfterHit();
+        }
     }
 
     public void FightAgain()

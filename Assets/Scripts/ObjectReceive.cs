@@ -28,7 +28,11 @@ public class ObjectReceive : MonoBehaviour
     {
         mask.fillAmount = (float)percent / 100f - 0.25f;
 
-        Debug.Log(mask.fillAmount);
         textPercent.text = (percent - 25).ToString() + "%";
+    }
+
+    public void IsActive(bool isActive)
+    {
+        gameObject.SetActive(isActive);
     }
 }

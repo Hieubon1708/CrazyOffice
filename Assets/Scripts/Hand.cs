@@ -12,7 +12,7 @@ public class Hand : MonoBehaviour
 
     public void Awake()
     {
-        animator = GetComponentInChildren<Animator>();
+        animator = GetComponentInChildren<Animator>(true);
     }
 
     public void Slap(Vector3 position, Vector3 lookAt, float angle, bool isRight)
@@ -70,8 +70,6 @@ public class Hand : MonoBehaviour
                 Boss1 boss1 = (Boss1)boss;
 
                 boss1.DropToilet();
-
-                PlayerController.instance.index = -1;
 
                 handPivot.SetActive(false);
 

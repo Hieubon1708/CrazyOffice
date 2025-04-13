@@ -10,10 +10,9 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        //PlayerPrefs.DeleteAll();
 
-        PlayerPrefs.DeleteAll();
-
-        PercentReceiveObject = 50;
+        Level = 7;
     }
 
     public int Level
@@ -28,6 +27,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int ReplayLevel
+    {
+        get
+        {
+            return PlayerPrefs.GetInt("ReplayLevel", 1);
+        }
+        set
+        {
+            PlayerPrefs.SetInt("ReplayLevel", value);
+        }
+    }
+
     public int Gold
     {
         get
@@ -39,7 +50,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetInt("Gold", value);
         }
     }
-    
+
     public int PercentReceiveObject
     {
         get
@@ -51,7 +62,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetInt("PercentReceiveObject", value);
         }
     }
-    
+
     public WeaponType CurrentReceiveObject
     {
         get
@@ -60,7 +71,7 @@ public class GameManager : MonoBehaviour
         }
         set
         {
-            PlayerPrefs.SetInt("PercentReceiveObject", (int)value);
+            PlayerPrefs.SetInt("CurrentReceiveObject", (int)value);
         }
     }
 

@@ -27,6 +27,11 @@ public class Boss2 : Boss
     public ParticleSystem fxElectric;
 
     bool isElectric;
+    public void Start()
+    {
+        hp = 25;
+        startHp = hp;
+    }
 
     public override Vector3 TargetPosition
     {
@@ -66,9 +71,14 @@ public class Boss2 : Boss
         {
             isElectric = false;
 
+            fxElectric.Stop();
+
             PlayerController.instance.isSoloBoss = false;
 
-            healthBar.SetActive(false);
+            DOVirtual.DelayedCall(1f, delegate
+            {
+                PlayerController.instance.Move();
+            });
         }
     }
 

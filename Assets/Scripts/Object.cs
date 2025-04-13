@@ -6,6 +6,8 @@ public class Object : MonoBehaviour
     bool isCollision;
     Rigidbody rb;
     BoxCollider col;
+
+    [HideInInspector]
     public Vector3 targetHead;
     LayerMask weaponLayer;
 
@@ -50,8 +52,10 @@ public class Object : MonoBehaviour
             isCollision = true;
 
             RaycastHit hit;
-            Vector3 dir = transform.position - Vector3.forward - transform.position;
-            Physics.Raycast(transform.position, dir * 5, out hit, 1, weaponLayer);
+            Vector3 dir = PlayerController.instance.transform.position - PlayerController.instance.CurrentEnemy.transform.position;
+            Physics.Raycast(transform.position, dir * 5, out hit, 3, weaponLayer);
+
+            Debug.DrawRay(transform.position, dir * 5, Color.yellow, 44);
 
             if (hit.collider != null)
             {
@@ -95,8 +99,10 @@ public class Object : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && rb.velocity != Vector3.zero)
         {
+            UIController.instance.fxBlood.Play();
+
             gameObject.SetActive(false);
             DOVirtual.DelayedCall(1f, delegate
             {

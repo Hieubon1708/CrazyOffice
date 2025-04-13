@@ -13,15 +13,12 @@ public class UIController : MonoBehaviour
     public Shop shop;
     public Progress progress;
 
-    public GameObject panelWin;
-    public GameObject panelLose;
+    PanelWin panelWin;
+    PanelLose panelLose;
     public GameObject layerCover;
 
     public TextMeshProUGUI textGold;
     public TextMeshProUGUI textLevel;
-
-    [HideInInspector]
-    public UIHandTutorial uIHandTutorial;
 
     public UIHandTutorial hand;
     public Image fade;
@@ -32,17 +29,21 @@ public class UIController : MonoBehaviour
     public GameObject buttonNoAds;
     public GameObject buttonSetting;
 
-    int totalEarn = 28;
+    [HideInInspector]
+    public int totalEarn = 28;
+
+    public Animation fxBlood;
 
     void Awake()
     {
         instance = this;
-        uIHandTutorial = GetComponentInChildren<UIHandTutorial>();
+
+        panelWin = GetComponentInChildren<PanelWin>(true);
+        panelLose = GetComponentInChildren<PanelLose>(true);
     }
 
     public void Start()
     {
-        shop.LoadData();
         setting.LoadData();
 
         UpdateGold();
@@ -71,6 +72,10 @@ public class UIController : MonoBehaviour
         hand.Show();
 
         FirstUI(true);
+
+        shop.LoadData();
+
+        shop.CheckNotice();
     }
 
     public void Play()
@@ -99,34 +104,38 @@ public class UIController : MonoBehaviour
 
     void ShowPanelWin()
     {
-        panelWin.SetActive(true);
+        panelWin.Show();
     }
 
     void HidePanelWin()
     {
-        panelWin.SetActive(false);
+        panelWin.Hide();
     }
 
     void ShowPanelLose()
     {
-        panelLose.SetActive(true);
+        panelLose.Show();
     }
 
     void HidePanelLose()
     {
-        panelLose.SetActive(false);
+        panelLose.Hide();
     }
 
     public void NextLevel()
     {
+        if (panelWin.isTweening) return;
+
         HidePanelWin();
-        GameController.instance.LoadLevel(GameManager.instance.Level);
+        GameController.instance.LoadLevel(GameController.instance.GetLevel());
     }
 
     public void Replay()
     {
+        if (panelLose.isTweening) return;
+
         HidePanelLose();
-        GameController.instance.LoadLevel(GameManager.instance.Level);
+        GameController.instance.LoadLevel(GameController.instance.GetLevel());
     }
 
     public void ShowGoldIncrease()

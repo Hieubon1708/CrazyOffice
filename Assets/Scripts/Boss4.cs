@@ -77,8 +77,6 @@ public class Boss4 : Boss
         {
             PlayerController.instance.isSoloBoss = false;
 
-            healthBar.SetActive(false);
-
             HeadDipExit();
 
             animator.SetTrigger("DieByHeadDip");

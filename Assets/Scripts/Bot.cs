@@ -6,7 +6,6 @@ using UnityEngine.AI;
 
 public abstract class Bot : MonoBehaviour
 {
-    [HideInInspector]
     public bool isTarget;
 
     public float distanceReady = 10f;

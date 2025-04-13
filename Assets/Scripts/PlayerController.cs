@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public NavMeshAgent navMeshAgent;
     WeaponHandler weaponHandler;
-    [HideInInspector]
     public Hand hand;
 
     [HideInInspector]
@@ -120,7 +119,7 @@ public class PlayerController : MonoBehaviour
         instance = this;
         navMeshAgent = GetComponent<NavMeshAgent>();
         cameraPlayer = GetComponentInChildren<CameraPlayer>();
-        hand = GetComponentInChildren<Hand>();
+        hand = GetComponentInChildren<Hand>(true);
 
         Speed = finalSpeed;
 
@@ -183,7 +182,7 @@ public class PlayerController : MonoBehaviour
 
     public void Update()
     {
-        if (!navMeshAgent.enabled || index == -1) return;
+        if (!navMeshAgent.enabled) return;
 
         if (Input.GetMouseButtonDown(0) && !isAttack)
         {
@@ -212,7 +211,9 @@ public class PlayerController : MonoBehaviour
 
                 if (CurrentBoss is Boss1)
                 {
-                    UIController.instance.uIHandTutorial.Hide();
+                    Boss1 boss1 = (Boss1)CurrentBoss;
+
+                    boss1.hand.Hide();
 
                     Vector3 head = CurrentBoss.headStatic;
 
@@ -297,6 +298,8 @@ public class PlayerController : MonoBehaviour
 
             endInput = Input.mousePosition;
         }
+
+        if (index == -1) return;
 
         Vector3 targetPosition = enemies[index].TargetPosition;
 
@@ -417,6 +420,7 @@ public class PlayerController : MonoBehaviour
 
     public void Strangle()
     {
+        hand.gameObject.SetActive(true);
         hand.Strangle();
     }
 }

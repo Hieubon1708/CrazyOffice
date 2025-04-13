@@ -4,9 +4,11 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public class Boss1 : Boss
-{    
+{
     public Transform toilet;
     public Transform toiletHole;
+
+    public UIHandTutorial hand;
 
     public override Vector3 TargetPosition
     {
@@ -30,7 +32,6 @@ public class Boss1 : Boss
             DOVirtual.DelayedCall(1f, delegate
             {
                 PlayerController.instance.Strangle();
-                healthBar.SetActive(false);
             }).SetUpdate(true);
         }
     }
@@ -71,7 +72,9 @@ public class Boss1 : Boss
                     PlayerController.instance.StopMove();
                     PlayerController.instance.isSoloBoss = true;
 
-                    UIController.instance.uIHandTutorial.Show();
+                    hand.Show();
+
+                    PlayerController.instance.hand.gameObject.SetActive(true);
                 }
             }
         }
@@ -79,7 +82,11 @@ public class Boss1 : Boss
 
     public void DropToilet()
     {
+        healthBar.SetActive(false);
         transform.DOMove(toiletHole.position, 1.5f).SetUpdate(true);
-        transform.DOScale(0f, 1.5f).SetUpdate(true);
+        transform.DOScale(0f, 1.5f).SetUpdate(true).OnComplete(delegate
+        {
+                PlayerController.instance.Move();
+        });
     }
 }

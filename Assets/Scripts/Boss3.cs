@@ -80,8 +80,6 @@ public class Boss3 : Boss
             headCut.AddForce(new Vector3(0, 10, 1), ForceMode.Impulse);
 
             PlayerController.instance.isSoloBoss = false;
-
-            healthBar.SetActive(false);
         }
     }
 

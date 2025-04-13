@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,12 +12,16 @@ using static GameController;
 
 public class PanelWin : MonoBehaviour
 {
-    public GameObject buttonNext;
+    public CanvasGroup panelWin;
 
     public CanvasGroup imageNext;
     public CanvasGroup imageGet;
 
+    public CanvasGroup barClaim;
+
     public TextMeshProUGUI goldReceive;
+    public TextMeshProUGUI goldReceiveBoss;
+    public TextMeshProUGUI goldReceiveBossButton;
 
     public RectTransform iconGold;
     public RectTransform startPositionGoldFly;
@@ -25,31 +30,55 @@ public class PanelWin : MonoBehaviour
 
     public ObjectReceive[] objectReceives;
 
-    public GameObject buttonGetFullPercent;
     public GameObject noThanks;
 
     public GameObject like;
 
     public RectTransform objectReceiveParent;
 
+    public RectTransform arrow;
+    public RectTransform buttonClaim;
+    public RectTransform claim;
+
+    public GameObject percent;
+
+    int mul;
+
+    bool isClaim;
+
+    [HideInInspector]
+    public bool isTweening;
+
     public void Awake()
     {
         objectReceives = GetComponentsInChildren<ObjectReceive>(true);
     }
 
-    public void OnEnable()
+    public void Show()
     {
+        gameObject.SetActive(true);
+
+        isClaim = false;
+
+        isTweening = true;
+
+        panelWin.alpha = 0f;
+
         objectReceiveParent.localScale = Vector3.one;
 
-        buttonGetFullPercent.SetActive(false);
         noThanks.SetActive(false);
-        buttonNext.SetActive(false);
 
-        goldReceive.gameObject.SetActive(true);
+        imageNext.gameObject.SetActive(false);
+        imageGet.gameObject.SetActive(false);
+
+        barClaim.gameObject.SetActive(false);
+        goldReceive.gameObject.SetActive(false);
 
         imageNext.DOFade(0f, 0f);
         imageGet.DOFade(0f, 0f);
 
+        barClaim.DOFade(0f, 0f);
+        
         int percentReceiveObject = GameManager.instance.PercentReceiveObject;
 
         bool isFullPercent = percentReceiveObject == 100;
@@ -72,11 +101,11 @@ public class PanelWin : MonoBehaviour
 
         GameController.WeaponType weaponType = GameManager.instance.CurrentReceiveObject;
 
-        allWeapons.Clear();
+        percent.SetActive(allWeapons.Count > 0);
 
         LoadPercent(weaponType, percentReceiveObject, allWeapons.Count == 0);
 
-        DOVirtual.DelayedCall(0.5f, delegate
+        panelWin.DOFade(1f, 0.5f).OnComplete(delegate
         {
             if (isFullPercent)
             {
@@ -88,33 +117,68 @@ public class PanelWin : MonoBehaviour
                 {
                     objectReceiveParent.DOScale(1.25f, 0.5f).OnComplete(delegate
                     {
-                        buttonGetFullPercent.SetActive(true);
+                        imageGet.gameObject.SetActive(true);
                         imageGet.DOFade(1f, 0.25f);
 
                         DOVirtual.DelayedCall(1.5f, delegate
                         {
-                            noThanks.SetActive(true);
+                            if(imageGet.gameObject.activeSelf) noThanks.SetActive(true);
                         });
                     }).SetDelay(0.5f);
                 };
 
-                IncreasePercent(action, weaponType, percentReceiveObject);
+                if (allWeapons.Count > 0) IncreasePercent(action, weaponType, percentReceiveObject);
+                else action.Invoke();
+            }
+            else if ((GameManager.instance.Level - 1) % 5 == 0)
+            {
+                goldReceive.gameObject.SetActive(false);
+
+                barClaim.gameObject.SetActive(true);
+
+                LaunchProgress();
+
+                Action action = () =>
+                {
+                    barClaim.DOFade(1f, 0.25f).SetDelay(0.5f);
+                };
+                if (allWeapons.Count > 0) IncreasePercent(action, weaponType, percentReceiveObject);
+                else action.Invoke();
             }
             else
             {
                 Action action = () =>
                 {
+                    goldReceive.gameObject.SetActive(true);
+
+                    goldReceive.text = "+" + (percentReceiveObject - 25) +" <sprite=0>";
+
                     DOVirtual.Int(0, 35, 0.5f, (v) =>
                     {
                         goldReceive.text = "+" + v + " <sprite=0>";
                     }).OnComplete(delegate
                     {
-                        GoldFly();
+                        GoldFly(startPositionGoldFly.position, null);
                     });
                 };
 
-                IncreasePercent(action, weaponType, percentReceiveObject);
+                if (allWeapons.Count > 0) IncreasePercent(action, weaponType, percentReceiveObject);
+                else action.Invoke();
             }
+
+            isTweening = false;
+        });
+    }
+
+    public void Hide()
+    {
+        isTweening = true;
+
+        panelWin.DOFade(0f, 0.5f).OnComplete(delegate
+        {
+            gameObject.SetActive(false);
+
+            isTweening = false;
         });
     }
 
@@ -122,7 +186,10 @@ public class PanelWin : MonoBehaviour
     {
         objectReceiveParent.localScale = Vector3.one;
 
-        buttonGetFullPercent.SetActive(false);
+        imageGet.gameObject.SetActive(false);
+
+        barClaim.gameObject.SetActive(false);
+
         noThanks.SetActive(false);
 
         List<GameController.WeaponType> allWeapons = ((GameController.WeaponType[])Enum.GetValues(typeof(GameController.WeaponType))).ToList();
@@ -135,12 +202,14 @@ public class PanelWin : MonoBehaviour
 
         goldReceive.gameObject.SetActive(true);
 
+        goldReceive.text = "+0 <sprite=0>";
+
         DOVirtual.Int(0, 35, 0.5f, (v) =>
         {
             goldReceive.text = "+" + v + " <sprite=0>";
         }).OnComplete(delegate
         {
-            GoldFly();
+            GoldFly(startPositionGoldFly.position, null);
         });
     }
 
@@ -151,11 +220,12 @@ public class PanelWin : MonoBehaviour
         weaponTypes.Add(GameManager.instance.CurrentReceiveObject);
 
         GameManager.instance.WeaponsUnlocked = weaponTypes;
+        GameManager.instance.CurrentWeapon = GameManager.instance.CurrentReceiveObject;
 
         NoThanks();
     }
 
-    void GoldFly()
+    void GoldFly(Vector3 startPosition, Action callback)
     {
         int count = 0;
 
@@ -168,8 +238,9 @@ public class PanelWin : MonoBehaviour
             int index = i;
 
             goldsFly[index].gameObject.SetActive(true);
+            goldsFly[index].position = startPosition;
 
-            goldsFly[index].DOMove(startPositionGoldFly.transform.position + random, 0.35f).OnComplete(delegate
+            goldsFly[index].DOMove(startPosition + random, 0.35f).OnComplete(delegate
             {
                 goldsFly[index].DOMove(iconGold.position, 1f).SetDelay(UnityEngine.Random.Range(0.15f, 0.5f)).SetEase(Ease.InBack).OnComplete(delegate
                 {
@@ -191,7 +262,9 @@ public class PanelWin : MonoBehaviour
 
                     if (count == goldsFly.Length - 1)
                     {
-                        buttonNext.SetActive(true);
+                        if (callback != null) callback.Invoke();
+
+                        imageNext.gameObject.SetActive(true);
                         imageNext.DOFade(1f, 0.25f);
                     }
                 });
@@ -218,13 +291,60 @@ public class PanelWin : MonoBehaviour
         {
             if (i == (int)weaponType && !isFull)
             {
-                objectReceives[i].gameObject.SetActive(true);
+                objectReceives[i].IsActive(true);
                 objectReceives[i].LoadData(percentReceiveObject);
             }
             else
             {
-                objectReceives[i].gameObject.SetActive(false);
+                objectReceives[i].IsActive(false);
             }
         }
+    }
+
+    public void LaunchProgress()
+    {
+        int totalEarn = UIController.instance.totalEarn;
+
+        goldReceiveBoss.text = "GET +" + totalEarn + " <sprite=0>";
+
+        arrow.DOLocalMoveX(380f, 1f).SetEase(Ease.Linear).SetLoops(-1, LoopType.Yoyo).OnUpdate(delegate
+        {
+            if (arrow.anchoredPosition.x >= -86 && arrow.anchoredPosition.x <= 86)
+            {
+                mul = 5;
+            }
+            else if (arrow.anchoredPosition.x >= -202 && arrow.anchoredPosition.x < -86 || arrow.anchoredPosition.x <= 202 && arrow.anchoredPosition.x > 86)
+            {
+                mul = 4;
+            }
+            else if (arrow.anchoredPosition.x >= -321 && arrow.anchoredPosition.x < -202 || arrow.anchoredPosition.x <= 321 && arrow.anchoredPosition.x > 202)
+            {
+                mul = 3;
+            }
+            else
+            {
+                mul = 2;
+            }
+
+            goldReceiveBossButton.text = "Claim " + "\n+" + (totalEarn * mul) + " <sprite=0>";
+        });
+    }
+
+    public void Claim(bool isButton)
+    {
+        if (isClaim) return;
+        isClaim = true;
+
+        UIController.instance.totalEarn *= mul;
+        GameManager.instance.Gold += UIController.instance.totalEarn;
+
+        arrow.DOKill();
+
+        Action action = () =>
+        {
+            barClaim.gameObject.SetActive(false);
+        };
+
+        GoldFly(!isButton ? claim.position : buttonClaim.position, action);
     }
 }

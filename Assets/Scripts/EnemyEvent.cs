@@ -34,4 +34,14 @@ public class EnemyEvent : MonoBehaviour
     {
         PlayerController.instance.Die();
     }
+    
+    public void AfterHit()
+    {
+        enemy.AfterHit();
+    }
+    
+    public void FallArmor()
+    {
+        enemy.FallArmor();
+    }
 }

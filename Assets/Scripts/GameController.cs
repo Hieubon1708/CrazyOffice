@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Cinemachine.DocumentationSortingAttribute;
 
 public class GameController : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class GameController : MonoBehaviour
 
     public GameObject[] preObjectToThrows;
     public GameObject[] prePlayerWeapons;
-    public ParticleSystem fxhit;
+    public ParticleSystem fxWeapon;
 
     public GameObject preHat1;
     public GameObject preHat2;
@@ -42,13 +43,23 @@ public class GameController : MonoBehaviour
 
     public void Start()
     {
-        LoadLevel(GameManager.instance.Level);
+        LoadLevel(GetLevel());
+    }
+
+    public int GetLevel()
+    {
+        int level = GameManager.instance.Level;
+        if (level > 20)
+        {
+            GameManager.instance.Level = 1;
+
+            return 1;
+        }
+        return level;
     }
 
     public void LoadLevel(int level)
     {
-        UIController.instance.LoadData();
-
         if (levelObject != null) Destroy(levelObject);
 
         levelObject = Instantiate(Resources.Load<GameObject>(level.ToString()), transform);
@@ -111,8 +122,8 @@ public class GameController : MonoBehaviour
     {
         Vector3 dir = PlayerController.instance.cameraPlayer.transform.position - position;
 
-        fxhit.transform.position = position + dir.normalized * 0.5f;
+        fxWeapon.transform.position = position + dir.normalized * 0.5f;
 
-        fxhit.Play();
+        fxWeapon.Play();
     }
 }

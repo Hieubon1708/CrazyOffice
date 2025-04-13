@@ -46,8 +46,6 @@ public class Shop : MonoBehaviour
         GameController.WeaponType currentWeapon = GameManager.instance.CurrentWeapon;
 
         WeaponSelect(currentWeapon);
-
-        CheckNotice();
     }
 
     public void WeaponSelect(GameController.WeaponType weaponType)
@@ -66,6 +64,7 @@ public class Shop : MonoBehaviour
 
     public void Show()
     {
+        LoadData();
         panel.SetActive(true);
     }
 
@@ -75,12 +74,11 @@ public class Shop : MonoBehaviour
 
         PlayerController.instance.InitWeapon();
     }
-
-    void CheckNotice()
+    public void CheckNotice()
     {
         int gold = GameManager.instance.Gold;
 
-        notice.SetActive(gold >= 2000 && GetWeaponUnlock().Count > 0);
+        notice.SetActive(gold >= 200 && GetWeaponUnlock().Count > 0);
     }
 
     public List<int> GetWeaponUnlock()
@@ -163,9 +161,9 @@ public class Shop : MonoBehaviour
 
     public void Roll()
     {
-        if (GameManager.instance.Gold < 2000 || isRandom) return;
+        if (GameManager.instance.Gold < 200 || isRandom) return;
 
-        GameManager.instance.Gold -= 2000;
+        GameManager.instance.Gold -= 200;
 
         UIController.instance.UpdateGold();
 
