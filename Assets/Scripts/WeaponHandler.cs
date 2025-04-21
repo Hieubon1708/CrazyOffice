@@ -1,10 +1,14 @@
-﻿using DG.Tweening;
+﻿using Ara;
+using DG.Tweening;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class WeaponHandler : MonoBehaviour
 {
+    public GameController.WeaponType weaponType;
+
+    [HideInInspector]
     public List<Collider> collidersInContact = new List<Collider>();
 
     Vector3 normal;
@@ -13,9 +17,15 @@ public class WeaponHandler : MonoBehaviour
 
     bool isThrow;
 
+    [HideInInspector]
+    public AraTrail araTrail;
+
     public void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        araTrail = GetComponentInChildren<AraTrail>();
+
+        araTrail.emit = false;
     }
 
     public void Die()
@@ -27,12 +37,14 @@ public class WeaponHandler : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy")) return;
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy") || rb.useGravity) return;
         if (isThrow)
         {
             if (!rb.useGravity)
             {
                 PlayerController.instance.CurrentBoss.HitFirst();
+
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitHeadBoss, 50);
             }
             rb.useGravity = true;
         }
@@ -63,6 +75,8 @@ public class WeaponHandler : MonoBehaviour
 
     public void ThrowStraight(Vector3 dir)
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.swings, 0);
+
         isThrow = true;
         transform.SetParent(GameController.instance.levelObject.transform);
         rb.constraints = RigidbodyConstraints.None;

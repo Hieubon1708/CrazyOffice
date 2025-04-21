@@ -25,13 +25,6 @@ public class BossEvent : MonoBehaviour
             }
         }).SetUpdate(true);
     }
-
-    public void AfterKneel()
-    {
-        Boss3 boss3 = (Boss3)PlayerController.instance.CurrentBoss;
-
-        StartCoroutine(boss3.AfterKneel());
-    }
     
     public void AfterHeadDip()
     {

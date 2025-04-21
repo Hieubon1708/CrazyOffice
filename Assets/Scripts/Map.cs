@@ -16,5 +16,6 @@ public class Map : MonoBehaviour
     public void Start()
     {
         UIController.instance.LoadData();
+        AudioController.instance.PlayMusic();
     }
 }

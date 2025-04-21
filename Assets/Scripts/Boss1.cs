@@ -22,8 +22,8 @@ public class Boss1 : Boss
     public override void SubtractHp()
     {
         if (hp <= 0) return;
-        hp -= 1;
-        bossHealth.SubtractHp(startHp, startHp - hp);
+
+        base.SubtractHp();
 
         if (hp == 0)
         {
@@ -43,9 +43,19 @@ public class Boss1 : Boss
 
         animator.SetTrigger("Hit");
 
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.slaps, 50);
+
         PlayerController.instance.transform.DOShakeRotation(0.25f, 5f, 25).SetUpdate(true);
 
         SubtractHp();
+    }
+
+    public void Strangle()
+    {
+        navMeshAgent.enabled = false;
+        transform.SetParent(PlayerController.instance.transform);
+
+        animator.SetTrigger("Strangle");
     }
 
     public void SetHeadStatic()
@@ -82,11 +92,13 @@ public class Boss1 : Boss
 
     public void DropToilet()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.flushToilet, 0);
+
         healthBar.SetActive(false);
         transform.DOMove(toiletHole.position, 1.5f).SetUpdate(true);
         transform.DOScale(0f, 1.5f).SetUpdate(true).OnComplete(delegate
         {
-                PlayerController.instance.Move();
+            PlayerController.instance.Move();
         });
     }
 }

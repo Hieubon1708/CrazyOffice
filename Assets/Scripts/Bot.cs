@@ -6,13 +6,15 @@ using UnityEngine.AI;
 
 public abstract class Bot : MonoBehaviour
 {
+    [HideInInspector]
     public bool isTarget;
 
     public float distanceReady = 10f;
 
     [HideInInspector]
     public NavMeshAgent navMeshAgent;
-    protected PuppetMaster puppetMaster;
+    [HideInInspector]
+    public PuppetMaster puppetMaster;
 
     [HideInInspector]
     public Animator animator;

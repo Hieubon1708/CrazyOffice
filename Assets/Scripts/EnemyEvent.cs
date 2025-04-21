@@ -30,6 +30,11 @@ public class EnemyEvent : MonoBehaviour
         enemy.ExcludePlayerWeapon(false);
     }
 
+    public void HitSound()
+    {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.swings, 0);
+    }
+
     public void Kill()
     {
         PlayerController.instance.Die();

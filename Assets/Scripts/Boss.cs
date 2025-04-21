@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class Boss : Bot
 {
-    protected int hp = 6;
+    protected int hp = 7;
     protected int startHp;
 
     public Transform neck;
@@ -12,7 +12,7 @@ public abstract class Boss : Bot
     protected BossHealth bossHealth;
     public GameObject healthBar;
 
-    public Transform targetStrangle;
+    public Transform targetHandOrFoot;
 
     [HideInInspector]
     public Vector3 headStatic;
@@ -37,14 +37,15 @@ public abstract class Boss : Bot
         healthBar.SetActive(false);
     }
 
-    public abstract void SubtractHp();
-
-    public void Strangle()
+    public virtual void SubtractHp()
     {
-        navMeshAgent.enabled = false;
-        transform.SetParent(PlayerController.instance.transform);
+        hp -= 1;
+        bossHealth.SubtractHp(startHp, startHp - hp);
 
-        animator.SetTrigger("Strangle");
+        if (hp == 0)
+        {
+            UIController.instance.totalEarn += Random.Range(50, 60);
+        }
     }
 
     public void HitFirst()

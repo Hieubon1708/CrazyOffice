@@ -26,7 +26,15 @@ public class Setting : MonoBehaviour
 
     public void ChangeSettingOption(SettingOption settingOption, bool isActive, float time)
     {
-        if (settingOption.type == TypeSetting.Sound) GameManager.instance.IsAtiveSound = isActive;
+        if(time != 0) AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        if (settingOption.type == TypeSetting.Sound)
+        {
+            GameManager.instance.IsAtiveSound = isActive;
+
+            if (isActive) AudioController.instance.ResumeMusic();
+            else AudioController.instance.StopMusic();
+        }
         if (settingOption.type == TypeSetting.Vibrate) GameManager.instance.IsActiveVibrate = isActive;
         settingOption.SwitchStateHandle(isActive, time);
     }
@@ -38,11 +46,19 @@ public class Setting : MonoBehaviour
 
     public void Show()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        ACEPlay.Bridge.BridgeController.instance.ShowBannerCollapsible();
+
         panel.SetActive(true);
     }
 
     public void Hide()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        ACEPlay.Bridge.BridgeController.instance.HideBannerCollapsible();
+
         panel.SetActive(false);
     }
 }

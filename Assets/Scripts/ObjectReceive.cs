@@ -13,22 +13,38 @@ public class ObjectReceive : MonoBehaviour
 
     public void Increase(int percent, Action callback)
     {
-        mask.DOFillAmount((float)percent / 100f, 1f).OnComplete(delegate
+        mask.DOFillAmount((float)percent / 100f, 1.25f).OnComplete(delegate
         {
             if (callback != null) callback.Invoke();
         });
 
-        DOVirtual.Int(percent - 25, percent, 1f, (v) =>
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.increasePercent, 1250);
+
+        DOVirtual.Int(percent - 25, percent, 1.25f, (v) =>
         {
             textPercent.text = v.ToString() + "%";
+        }).OnComplete(delegate
+        {
+            if(percent == 100)
+            {
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.completePercent, 100);
+            }
         });
     }
 
     public void LoadData(int percent)
     {
-        mask.fillAmount = (float)percent / 100f - 0.25f;
+        if(percent == 0)
+        {
+            mask.fillAmount = 0;
+            textPercent.text = "";
+        }
+        else
+        {
+            mask.fillAmount = (float)percent / 100f - 0.25f;
 
-        textPercent.text = (percent - 25).ToString() + "%";
+            textPercent.text = (percent - 25).ToString() + "%";
+        }
     }
 
     public void IsActive(bool isActive)

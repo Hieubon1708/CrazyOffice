@@ -117,13 +117,14 @@ MonoBehaviour:
   isTarget: 0
   distanceReady: 10
   navMeshAgent: {fileID: 0}
+  puppetMaster: {fileID: 0}
   animator: {fileID: 0}
   playerAngularSpeed: 120
   playerStartSpeed: 6
   head: {fileID: 6892907141142363056}
   neck: {fileID: 2640755002628408593}
   healthBar: {fileID: 327752527071488114}
-  targetStrangle: {fileID: 0}
+  targetHandOrFoot: {fileID: 0}
   headStatic: {x: 0, y: 0, z: 0}
   toilet: {fileID: 0}
   toiletHole: {fileID: 0}
@@ -452,7 +453,7 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 7697505193326466434, guid: d10f9a60c46821346b6eafc4e2084a67, type: 3}
-  - {fileID: -1954928698039709194, guid: d10f9a60c46821346b6eafc4e2084a67, type: 3}
+  - {fileID: 2100000, guid: 9e8c65aa876702f49bdd45cd91d57d77, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

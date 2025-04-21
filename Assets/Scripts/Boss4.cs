@@ -1,10 +1,5 @@
 using DG.Tweening;
-using RootMotion.Dynamics;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -33,10 +28,20 @@ public class Boss4 : Boss
     bool isAfterHeadDip;
     bool isInWater;
 
+    public SkinnedMeshRenderer MeshFilter;
+
     public void Start()
     {
         hp = 100;
         startHp = hp;
+
+        Mesh mesh = MeshFilter.sharedMesh;
+        Vector2[] uvs = mesh.uv;
+
+        for (int i = 0; i < uvs.Length; i++)
+        {
+            uvs[i] = Vector2.zero;
+        }
     }
 
     public override Vector3 TargetPosition
@@ -70,8 +75,8 @@ public class Boss4 : Boss
     public override void SubtractHp()
     {
         if (hp <= 0) return;
-        hp -= 1;
-        bossHealth.SubtractHp(startHp, startHp - hp);
+
+        base.SubtractHp();
 
         if (hp == 0)
         {
@@ -80,6 +85,11 @@ public class Boss4 : Boss
             HeadDipExit();
 
             animator.SetTrigger("DieByHeadDip");
+
+            DOVirtual.DelayedCall(1.5f, delegate
+            {
+                PlayerController.instance.Move();
+            });
         }
     }
 
@@ -99,36 +109,13 @@ public class Boss4 : Boss
 
                     PlayerController.instance.StopMove();
 
-                    PlayerController.instance.Strangle();
+                    DOVirtual.DelayedCall(0.25f, delegate
+                    {
+                        PlayerController.instance.foot.PlayAnimationKickRight();
+                    });
                 }
             }
         }
-    }
-
-    public void DropDown(Transform hand)
-    {
-        hand.gameObject.SetActive(false);
-
-        animator.SetTrigger("Idle");
-
-        transform.DOMoveY(transform.position.y - 1f, 0.25f).OnComplete(delegate
-        {
-            DOVirtual.DelayedCall(0.5f, delegate
-            {
-                hand.gameObject.SetActive(true);
-
-                hand.position = afterStrangle[1].position;
-
-                hand.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
-                hand.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
-                {
-                    transform.DOLookAt(potReal.position, 0.5f, AxisConstraint.Y).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
-                    {
-                        StartCoroutine(AfterDropDown());
-                    });
-                });
-            }).SetUpdate(true);
-        }).SetUpdate(true);
     }
 
     public void HeadDip()
@@ -157,6 +144,9 @@ public class Boss4 : Boss
 
         isInWater = false;
 
+        AudioController.instance.StopSrcLoop();
+        AudioController.instance.srcLoop.clip = null;
+
         layerFade.DOKill();
         Color color = layerFade.color;
         color.a = 0;
@@ -170,11 +160,26 @@ public class Boss4 : Boss
         totalTime = 0;
     }
 
+    public void AfterKickRight()
+    {
+        navMeshAgent.enabled = false;
+
+        animator.SetTrigger("KickRight");
+
+        transform.DOMove(pot.position, 1f).SetUpdate(true).OnComplete(delegate
+        {
+            StartCoroutine(AfterDropDown());
+        });
+
+        Vector3 dir = pot.position - transform.position;
+        Quaternion lookAt = Quaternion.LookRotation(dir);
+
+        transform.DORotateQuaternion(lookAt, 1f).SetUpdate(true);
+    }
+
     public IEnumerator AfterDropDown()
     {
-        transform.SetParent(GameController.instance.levelObject.transform);
-
-        PlayerController.instance.hand.handPivot.SetActive(false);
+        yield return new WaitForSeconds(0.75f);
 
         isAfterHeadDip = true;
 
@@ -182,7 +187,6 @@ public class Boss4 : Boss
 
         PlayerController.instance.ResumeMove();
 
-        PlayerController.instance.tRotate = 0.025f;
         PlayerController.instance.isRoting = true;
 
         yield return new WaitForFixedUpdate();
@@ -215,12 +219,16 @@ public class Boss4 : Boss
 
                 SubtractHp();
 
+                if (hp == 0) return;
+
                 if (potCam.depth == 1)
                 {
                     potCam.transform.DOShakeRotation(0.1f, 2.5f, 1).SetUpdate(true);
+                    if (AudioController.instance.srcLoop.clip != AudioController.instance.balloon) AudioController.instance.PlaySoundNVibrateLoop(AudioController.instance.balloon, 0);
                 }
                 else
                 {
+                    if (AudioController.instance.srcLoop.clip != AudioController.instance.waterSplash) AudioController.instance.PlaySoundNVibrateLoop(AudioController.instance.waterSplash, 0);
                     PlayerController.instance.transform.DOShakeRotation(0.1f, 2.5f, 1).SetUpdate(true);
                 }
 

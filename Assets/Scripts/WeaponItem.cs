@@ -12,6 +12,6 @@ public class WeaponItem : MonoBehaviour
     public void OnClick()
     {
         if (UIController.instance.shop.isRandom || unlock.activeSelf) return;
-        UIController.instance.shop.WeaponSelect(weaponType);
+        UIController.instance.shop.WeaponSelect(weaponType, true);
     }
 }

@@ -921,6 +921,7 @@ namespace RootMotion.Dynamics
             //if (props.mapPosition) target.localPosition = targetLocalPosition;
 
             Vector3 anchorUnscaled = joint.connectedAnchor = InverseTransformPointUnscaled(connectedBodyTarget.position, connectedBodyTarget.rotation * toParentSpace, target.position);
+            
             float uniformScaleF = 1f / connectedBodyTransform.lossyScale.x;
 
             joint.connectedAnchor = anchorUnscaled * uniformScaleF;

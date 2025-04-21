@@ -7,7 +7,7 @@ public class SettingOption : MonoBehaviour, IPointerClickHandler
     public Setting.TypeSetting type;
     public GameObject buttonActive;
     public RectTransform dot;
-    float targetX = -60f;
+    float targetX = 60f;
 
     public void OnPointerClick(PointerEventData eventData)
     {

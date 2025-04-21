@@ -22,7 +22,7 @@ public class CreateCharacter : MonoBehaviour
 
     void Start()
     {
-        PuppetMaster puppetMasterN = character.GetComponentInChildren<PuppetMaster>();
+        /*PuppetMaster puppetMasterN = character.GetComponentInChildren<PuppetMaster>();
         Enemy enemy = character.GetComponent<Enemy>();
 
         childAll = character.GetComponentsInChildren<Transform>();
@@ -57,31 +57,31 @@ public class CreateCharacter : MonoBehaviour
 
             CapsuleCollider colN = child1[i].GetComponent<CapsuleCollider>();
             BoxCollider boxN = child1[i].GetComponent<BoxCollider>();
-/*
+
             if (boxO != null && boxN == null)
             {
-                boxN = bones[i].AddComponent<BoxCollider>();
+                boxN = child1[i].AddComponent<BoxCollider>();
             }
 
             if (colO != null && colN == null)
             {
-                colN = bones[i].AddComponent<CapsuleCollider>();
+                colN = child1[i].AddComponent<CapsuleCollider>();
             }
 
-            Rigidbody rbN = bones[i].GetComponent<Rigidbody>();
-            if (rbN == null) rbN = bones[i].AddComponent<Rigidbody>();
+            Rigidbody rbN = child1[i].GetComponent<Rigidbody>();
+            if (rbN == null) rbN = child1[i].AddComponent<Rigidbody>();
 
             if (isContainCol) EditorUtility.CopySerialized(isBox ? boxO : colO, isBox ? boxN : colN);
 
             EditorUtility.CopySerialized(rbO, rbN);
-            EditorUtility.CopySerialized(jointO, jointN);*/
+            EditorUtility.CopySerialized(jointO, jointN);
 
-            /*if (i >= 2)
+            if (i >= 2)
             {
-                Rigidbody rbParent = bones[i].parent.GetComponent<Rigidbody>();
+                Rigidbody rbParent = child1[i].parent.GetComponent<Rigidbody>();
 
                 jointN.connectedBody = rbParent;
-            }*/
+            }
         }
        
         PuppetMaster puppetMasterO = this.puppetMaster.GetComponent<PuppetMaster>();
@@ -95,7 +95,7 @@ public class CreateCharacter : MonoBehaviour
 
             puppetMasterN.muscles[i].joint = targetJoint;
             puppetMasterN.muscles[i].target = targetTf;
-        }
+        }*/
     }
 
     Transform GetObjOfBone1(string name)

@@ -13,6 +13,7 @@ public class GameController : MonoBehaviour
     public GameObject[] preObjectToThrows;
     public GameObject[] prePlayerWeapons;
     public ParticleSystem fxWeapon;
+    public ParticleSystem fxHitFly;
 
     public GameObject preHat1;
     public GameObject preHat2;
@@ -43,6 +44,8 @@ public class GameController : MonoBehaviour
 
     public void Start()
     {
+        ACEPlay.Bridge.BridgeController.instance.ShowBanner();
+
         LoadLevel(GetLevel());
     }
 
@@ -52,9 +55,11 @@ public class GameController : MonoBehaviour
         if (level > 20)
         {
             GameManager.instance.Level = 1;
+            GameManager.instance.ReplayLevel++;
 
             return 1;
         }
+
         return level;
     }
 

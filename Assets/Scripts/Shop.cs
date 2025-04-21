@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class Shop : MonoBehaviour
 {
@@ -13,9 +16,18 @@ public class Shop : MonoBehaviour
     [HideInInspector]
     public bool isRandom;
 
+    int weaponCost = 1500;
+    public TextMeshProUGUI textWeaponCost;
+
+    public Image[] buttonBuy;
+    public TextMeshProUGUI textBuy;
+
+    public GameObject[] buttons;
+
     private void Awake()
     {
         weaponItems = GetComponentsInChildren<WeaponItem>(true);
+        textWeaponCost.text = "OPEN \n" + weaponCost;
     }
 
     public void LoadData()
@@ -45,11 +57,15 @@ public class Shop : MonoBehaviour
 
         GameController.WeaponType currentWeapon = GameManager.instance.CurrentWeapon;
 
-        WeaponSelect(currentWeapon);
+        WeaponSelect(currentWeapon, false);
+
+        CheckButtonBuy();
     }
 
-    public void WeaponSelect(GameController.WeaponType weaponType)
+    public void WeaponSelect(GameController.WeaponType weaponType, bool isButton)
     {
+        if (isButton) AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
         foreach (var weaponItem in weaponItems)
         {
             if (weaponItem.weaponType == weaponType)
@@ -62,14 +78,46 @@ public class Shop : MonoBehaviour
         }
     }
 
+    void CheckButtonBuy()
+    {
+        if (GetWeaponUnlock().Count == 0)
+        {
+            buttons[0].SetActive(false);
+            buttons[1].SetActive(false);
+
+            return;
+        }
+        else
+        {
+            int gold = GameManager.instance.Gold;
+
+            bool isOk = gold >= weaponCost;
+
+            Color color = Color.white;
+
+            if (!isOk) color = new Vector4(0.5f, 0.5f, 0.5f, 1f);
+
+            foreach (var e in buttonBuy)
+            {
+                e.color = color;
+            }
+
+            textBuy.color = color;
+        }
+    }
+
     public void Show()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
         LoadData();
         panel.SetActive(true);
     }
 
     public void Hide()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
         panel.SetActive(false);
 
         PlayerController.instance.InitWeapon();
@@ -78,7 +126,7 @@ public class Shop : MonoBehaviour
     {
         int gold = GameManager.instance.Gold;
 
-        notice.SetActive(gold >= 200 && GetWeaponUnlock().Count > 0);
+        notice.SetActive(gold >= weaponCost && GetWeaponUnlock().Count > 0);
     }
 
     public List<int> GetWeaponUnlock()
@@ -109,6 +157,8 @@ public class Shop : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
+            AudioController.instance.PlaySoundNVibrate(AudioController.instance.roll, 50);
+
             int index = ints[Random.Range(0, ints.Count)];
 
             for (int j = 0; j < ints.Count; j++)
@@ -133,6 +183,8 @@ public class Shop : MonoBehaviour
             {
                 yield return new WaitForSeconds(0.5f);
 
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.unlockItem, 50);
+
                 weaponItems[index].unlock.SetActive(false);
                 weaponItems[index].frameNoSelect.SetActive(true);
 
@@ -141,6 +193,8 @@ public class Shop : MonoBehaviour
                 weaponTypes.Add(weaponItems[index].weaponType);
 
                 GameManager.instance.WeaponsUnlocked = weaponTypes;
+
+                UIController.instance.shop.WeaponSelect(weaponItems[index].weaponType, false);
 
                 isRandom = false;
 
@@ -154,18 +208,46 @@ public class Shop : MonoBehaviour
 
     public void GoldReward()
     {
-        GameManager.instance.Gold += 500;
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
 
-        UIController.instance.UpdateGold();
+        if (ACEPlay.Bridge.BridgeController.instance.IsRewardReady())
+        {
+            UnityEvent eReward = new UnityEvent();
+            eReward.AddListener(() =>
+            {
+                GameManager.instance.Gold += 500;
+
+                UIController.instance.UpdateGold();
+
+                CheckButtonBuy();
+
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.goldReward, 50);
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowRewarded("placement", eReward, null);
+        }
+        else
+        {
+            GameManager.instance.Gold += 500;
+
+            UIController.instance.UpdateGold();
+
+            CheckButtonBuy();
+
+            AudioController.instance.PlaySoundNVibrate(AudioController.instance.goldReward, 50);
+        }
     }
 
     public void Roll()
     {
-        if (GameManager.instance.Gold < 200 || isRandom) return;
+        if (GameManager.instance.Gold < weaponCost || isRandom) return;
 
-        GameManager.instance.Gold -= 200;
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        GameManager.instance.Gold -= weaponCost;
 
         UIController.instance.UpdateGold();
+
+        CheckButtonBuy();
 
         StartCoroutine(RandomWeapon());
     }

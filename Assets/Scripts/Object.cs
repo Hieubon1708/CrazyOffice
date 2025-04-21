@@ -4,6 +4,7 @@ using UnityEngine;
 public class Object : MonoBehaviour
 {
     bool isCollision;
+    bool isCollisionByFloor;
     Rigidbody rb;
     BoxCollider col;
 
@@ -55,10 +56,10 @@ public class Object : MonoBehaviour
             Vector3 dir = PlayerController.instance.transform.position - PlayerController.instance.CurrentEnemy.transform.position;
             Physics.Raycast(transform.position, dir * 5, out hit, 3, weaponLayer);
 
-            Debug.DrawRay(transform.position, dir * 5, Color.yellow, 44);
-
             if (hit.collider != null)
             {
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsBall[0], 50);
+
                 rb.useGravity = false;
 
                 SetAngular(25f);
@@ -71,6 +72,8 @@ public class Object : MonoBehaviour
             }
             else
             {
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsBall[0], 50);
+
                 rb.useGravity = true;
 
                 col.enabled = false;
@@ -85,11 +88,21 @@ public class Object : MonoBehaviour
                     PlayerController.instance.FightAgain();
                 });
             }
+
+            GameController.instance.fxHitFly.transform.position = collision.contacts[0].point;
+            GameController.instance.fxHitFly.Play();
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Default"))
+        {
+            isCollisionByFloor = true;
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
             PlayerController.instance.CurrentEnemy.DieByObject(collision.rigidbody);
+
+            AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsBall[1], 100);
 
             rb.useGravity = true;
 
@@ -99,9 +112,11 @@ public class Object : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && rb.velocity != Vector3.zero)
+        if (other.CompareTag("Player") && !isCollisionByFloor)
         {
             UIController.instance.fxBlood.Play();
+
+            AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsMine, 100);
 
             gameObject.SetActive(false);
             DOVirtual.DelayedCall(1f, delegate

@@ -1,7 +1,5 @@
 using DG.Tweening;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Hand : MonoBehaviour
@@ -27,6 +25,8 @@ public class Hand : MonoBehaviour
 
     public void Strangle()
     {
+        gameObject.SetActive(true);
+
         animator.Rebind();
 
         transform.localScale = Vector3.one;
@@ -37,10 +37,11 @@ public class Hand : MonoBehaviour
 
         Boss boss = PlayerController.instance.CurrentBoss;
 
-        handPivot.transform.DOMove(boss.targetStrangle.position, 0.5f).OnComplete(delegate
+        handPivot.transform.DOMove(boss.targetHandOrFoot.position, 0.5f).OnComplete(delegate
         {
-            handPivot.transform.SetParent(boss.targetStrangle);
-            boss.Strangle();
+            handPivot.transform.SetParent(boss.targetHandOrFoot);
+            if(boss is Boss1) (boss as Boss1).Strangle();
+            if(boss is Boss3) (boss as Boss3).Strangle();
 
             boss.transform.DOMoveY(boss.transform.position.y + 1f, 1f).OnComplete(delegate
             {
@@ -72,32 +73,6 @@ public class Hand : MonoBehaviour
                 boss1.DropToilet();
 
                 handPivot.SetActive(false);
-
-                break;
-
-            case Boss2:
-
-                Boss2 boss2 = (Boss2)boss;
-
-                boss2.Sit();
-
-                handPivot.SetActive(false);
-
-                break;
-
-            case Boss3:
-
-                Boss3 boss3 = (Boss3)boss;
-
-                boss3.KneelDown(handPivot.transform);
-
-                break;
-
-            case Boss4:
-
-                Boss4 boss4 = (Boss4)boss;
-
-                boss4.DropDown(handPivot.transform);
 
                 break;
         }

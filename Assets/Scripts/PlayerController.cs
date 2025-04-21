@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     public NavMeshAgent navMeshAgent;
     WeaponHandler weaponHandler;
     public Hand hand;
+    public Foot foot;
 
     [HideInInspector]
     public CameraPlayer cameraPlayer;
@@ -33,6 +34,9 @@ public class PlayerController : MonoBehaviour
     public bool isLookAt;
 
     public Transform weaponContainer;
+
+    [HideInInspector]
+    public int countStuff;
 
     public float Speed
     {
@@ -120,6 +124,7 @@ public class PlayerController : MonoBehaviour
         navMeshAgent = GetComponent<NavMeshAgent>();
         cameraPlayer = GetComponentInChildren<CameraPlayer>();
         hand = GetComponentInChildren<Hand>(true);
+        foot = GetComponentInChildren<Foot>(true);
 
         Speed = finalSpeed;
 
@@ -145,6 +150,8 @@ public class PlayerController : MonoBehaviour
 
         AngularSpeed = enemies[index].playerAngularSpeed;
         Speed = enemies[index].playerStartSpeed;
+
+        AudioController.instance.PlayWalk();
     }
 
     public void ResetParam()
@@ -179,9 +186,18 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector]
     public float tRotate = 0.35f;
+    float startWeaponAngle;
+
+    int flagSoundAttack = 0;
 
     public void Update()
     {
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            index = 0;
+            Kick();
+        }
         if (!navMeshAgent.enabled) return;
 
         if (Input.GetMouseButtonDown(0) && !isAttack)
@@ -240,19 +256,19 @@ public class PlayerController : MonoBehaviour
 
                     hand.Slap(new Vector3(pos.x, head.y, pos.z), head, angle + 90, isRight);
                 }
-                else if(CurrentBoss is Boss2)
+                else if (CurrentBoss is Boss2)
                 {
                     Boss2 boss2 = (Boss2)CurrentBoss;
 
                     boss2.EletricShock();
                 }
-                else if(CurrentBoss is Boss3)
+                else if (CurrentBoss is Boss3)
                 {
                     Boss3 boss3 = (Boss3)CurrentBoss;
 
                     boss3.Cut();
                 }
-                else if(CurrentBoss is Boss4)
+                else if (CurrentBoss is Boss4)
                 {
                     Boss4 boss4 = (Boss4)CurrentBoss;
 
@@ -261,38 +277,59 @@ public class PlayerController : MonoBehaviour
             }
 
             isDrag = false;
+
+            flagSoundAttack = 0;
         }
         if (isDrag && !isCantTouch)
         {
             Vector3 currentInput = Input.mousePosition;
 
             //Rotation
-            float xRotation = (startInput.x - currentInput.x) * 0.185f;
-            float yRotation = (currentInput.y - startInput.y) * 0.3f;
+            float xRotation = (startInput.x - currentInput.x) * 0.3f;
+            float yRotation = (currentInput.y - startInput.y) * 0.4f;
 
             float clampX = Mathf.Clamp(yRotation + startRotation.x, 0, 85);
             float clampY = Mathf.Clamp(xRotation + startRotation.y, 15, 165);
 
-            Quaternion newLocalRotation = Quaternion.Euler(clampX, clampY, weapon.localEulerAngles.z);
+            Quaternion newLocalRotation = Quaternion.Euler(clampX, clampY, startWeaponAngle);
             weapon.localRotation = Quaternion.Lerp(weapon.localRotation, newLocalRotation, 0.35f);
 
             //Position
-            float xPosition = (currentInput.x - startInput.x) * 0.0005f;
-            float yPositiion = (startInput.y - currentInput.y) * 0.0005f;
+            float xPosition = (currentInput.x - startInput.x) * 0.0015f;
+            float yPositiion = (startInput.y - currentInput.y) * 0.0025f;
 
             float xClamp = Mathf.Clamp(startPosition.z + xPosition, -0.5f, 0.5f);
-            float yClamp = Mathf.Clamp(startPosition.y + yPositiion, -0.5f, 0f);
+            float yClamp = Mathf.Clamp(startPosition.y + yPositiion, -0.75f, 0f);
 
             weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, yClamp, xClamp), 0.35f);
 
+            float distance = Vector2.Distance(currentInput, endInput);
+
             if (isCollision)
             {
-                float distance = Vector2.Distance(currentInput, endInput);
-                if (distance > 40f && weaponHandler.collidersInContact.Count > 0)
+                if (distance > 30f && weaponHandler.collidersInContact.Count > 0 && !CurrentEnemy.isExcludeLayer)
                 {
                     isRoting = true;
                     weaponHandler.HitFx();
                     CurrentEnemy.SubtractHp(1, (currentInput - endInput).normalized, weaponHandler.collidersInContact[0].attachedRigidbody);
+
+                    AudioController.instance.PlaySoundNVibrate(AudioController.instance.GetHit(weaponHandler.weaponType), 0);
+                }
+            }
+
+            if (distance > 20)
+            {
+                if (currentInput.x < startInput.x && flagSoundAttack != -1)
+                {
+                    flagSoundAttack = -1;
+
+                    AudioController.instance.PlaySoundNVibrate(AudioController.instance.swings, 0);
+                }
+                if (currentInput.x > startInput.x && flagSoundAttack != 1)
+                {
+                    flagSoundAttack = 1;
+
+                    AudioController.instance.PlaySoundNVibrate(AudioController.instance.swings, 0);
                 }
             }
 
@@ -342,6 +379,8 @@ public class PlayerController : MonoBehaviour
 
     public void StopMove()
     {
+        AudioController.instance.StopWalk();
+
         isMoving = false;
         IsUpdatePosition = false;
     }
@@ -360,7 +399,7 @@ public class PlayerController : MonoBehaviour
 
     public void FightAgain()
     {
-        PlayerController.instance.CurrentEnemy.FightAgain();
+        CurrentEnemy.FightAgain();
     }
 
     public void InitWeapon()
@@ -373,7 +412,9 @@ public class PlayerController : MonoBehaviour
         GameObject weapon = Instantiate(GameController.instance.prePlayerWeapons[(int)GameManager.instance.CurrentWeapon], weaponContainer);
         this.weapon = weapon.transform;
 
-        weapon.transform.localRotation = Quaternion.Euler(35f, 90f, 0f);
+        startWeaponAngle = weapon.transform.localEulerAngles.z;
+
+        weapon.transform.localRotation = Quaternion.Euler(35f, 90f, startWeaponAngle);
 
         weaponHandler = weapon.GetComponent<WeaponHandler>();
     }
@@ -381,6 +422,10 @@ public class PlayerController : MonoBehaviour
     public void Die()
     {
         if (!navMeshAgent.enabled) return;
+
+        CurrentEnemy.puppetMaster.mode = RootMotion.Dynamics.PuppetMaster.Mode.Kinematic;
+
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsMine, 0);
 
         navMeshAgent.enabled = false;
         cameraPlayer.Die();
@@ -420,7 +465,11 @@ public class PlayerController : MonoBehaviour
 
     public void Strangle()
     {
-        hand.gameObject.SetActive(true);
         hand.Strangle();
+    }
+
+    public void Kick()
+    {
+        foot.Kick();
     }
 }

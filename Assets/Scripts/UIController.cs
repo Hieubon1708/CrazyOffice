@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using static GameController;
 
@@ -29,8 +30,7 @@ public class UIController : MonoBehaviour
     public GameObject buttonNoAds;
     public GameObject buttonSetting;
 
-    [HideInInspector]
-    public int totalEarn = 28;
+    public int totalEarn;
 
     public Animation fxBlood;
 
@@ -44,8 +44,6 @@ public class UIController : MonoBehaviour
 
     public void Start()
     {
-        setting.LoadData();
-
         UpdateGold();
     }
 
@@ -66,7 +64,11 @@ public class UIController : MonoBehaviour
 
     public void LoadData()
     {
-        textLevel.text = "Level " + GameManager.instance.Level;
+        totalEarn = 0;
+
+        int replayLevel = GameManager.instance.ReplayLevel;
+
+        textLevel.text = "Level " + (GameManager.instance.Level + replayLevel * 20);
         progress.LoadData();
 
         hand.Show();
@@ -80,45 +82,102 @@ public class UIController : MonoBehaviour
 
     public void Play()
     {
-        FirstUI(false);
+        if (ACEPlay.Bridge.BridgeController.instance.IsInterReady())
+        {
+            UnityEvent e = new UnityEvent();
+            e.AddListener(() =>
+            {
+                FirstUI(false);
 
-        PlayerController.instance.Move();
+                PlayerController.instance.Move();
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowInterstitial("start_game", e);
+        }
+        else
+        {
+            FirstUI(false);
+
+            PlayerController.instance.Move();
+        }
     }
 
     public void Win()
     {
-        GameManager.instance.Level++;
-        GameManager.instance.PercentReceiveObject += 25;
-        GameManager.instance.Gold += totalEarn;
-
-        DOVirtual.DelayedCall(1f, delegate
+        if (ACEPlay.Bridge.BridgeController.instance.IsInterReady())
         {
-            ShowPanelWin();
-        });
+            UnityEvent e = new UnityEvent();
+            e.AddListener(() =>
+            {
+                GameManager.instance.Level++;
+                GameManager.instance.PercentReceiveObject += 25;
+                GameManager.instance.Gold += totalEarn;
+
+                DOVirtual.DelayedCall(1f, delegate
+                {
+                    ShowPanelWin();
+                });
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowInterstitial("win", e);
+        }
+        else
+        {
+            GameManager.instance.Level++;
+            GameManager.instance.PercentReceiveObject += 25;
+            GameManager.instance.Gold += totalEarn;
+
+            DOVirtual.DelayedCall(1f, delegate
+            {
+                ShowPanelWin();
+            });
+        }
     }
 
     public void Lose()
     {
-        ShowPanelLose();
+        if (ACEPlay.Bridge.BridgeController.instance.IsInterReady())
+        {
+            UnityEvent e = new UnityEvent();
+            e.AddListener(() =>
+            {
+                ShowPanelLose();
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowInterstitial("lose", e);
+        }
+        else
+        {
+            ShowPanelLose();
+        }
     }
 
     void ShowPanelWin()
     {
+        ACEPlay.Bridge.BridgeController.instance.ShowBannerCollapsible();
+
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.win, 0);
+
         panelWin.Show();
     }
 
     void HidePanelWin()
     {
+        ACEPlay.Bridge.BridgeController.instance.HideBannerCollapsible();
+
         panelWin.Hide();
     }
 
     void ShowPanelLose()
     {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.lose, 0);
+
+        ACEPlay.Bridge.BridgeController.instance.ShowBannerCollapsible();
+
         panelLose.Show();
     }
 
     void HidePanelLose()
     {
+        ACEPlay.Bridge.BridgeController.instance.HideBannerCollapsible();
+
         panelLose.Hide();
     }
 
@@ -126,16 +185,51 @@ public class UIController : MonoBehaviour
     {
         if (panelWin.isTweening) return;
 
-        HidePanelWin();
-        GameController.instance.LoadLevel(GameController.instance.GetLevel());
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        if (ACEPlay.Bridge.BridgeController.instance.IsInterReady())
+        {
+            UnityEvent e = new UnityEvent();
+            e.AddListener(() =>
+            {
+                HidePanelWin();
+                GameController.instance.LoadLevel(GameController.instance.GetLevel());
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowInterstitial("next_level", e);
+        }
+        else
+        {
+            HidePanelWin();
+            GameController.instance.LoadLevel(GameController.instance.GetLevel());
+        }
+    }
+
+    public void RemoveAds()
+    {
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
     }
 
     public void Replay()
     {
         if (panelLose.isTweening) return;
 
-        HidePanelLose();
-        GameController.instance.LoadLevel(GameController.instance.GetLevel());
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        if (ACEPlay.Bridge.BridgeController.instance.IsInterReady())
+        {
+            UnityEvent e = new UnityEvent();
+            e.AddListener(() =>
+            {
+                HidePanelLose();
+                GameController.instance.LoadLevel(GameController.instance.GetLevel());
+            });
+            ACEPlay.Bridge.BridgeController.instance.ShowInterstitial("replay", e);
+        }
+        else
+        {
+            HidePanelLose();
+            GameController.instance.LoadLevel(GameController.instance.GetLevel());
+        }
     }
 
     public void ShowGoldIncrease()

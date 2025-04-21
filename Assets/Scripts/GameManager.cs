@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static GameController;
@@ -9,10 +10,18 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;
-        //PlayerPrefs.DeleteAll();
+       /* if(BridgeController.instance == null)
+        {
+            SceneManager.LoadScene(0);
 
-        Level = 7;
+            return;
+        }*/
+
+        instance = this;
+        PlayerPrefs.DeleteAll();
+
+        Level = 20;
+        WeaponsUnlocked = new List<WeaponType>((GameController.WeaponType[])Enum.GetValues(typeof(GameController.WeaponType)));
     }
 
     public int Level
@@ -31,7 +40,7 @@ public class GameManager : MonoBehaviour
     {
         get
         {
-            return PlayerPrefs.GetInt("ReplayLevel", 1);
+            return PlayerPrefs.GetInt("ReplayLevel", 0);
         }
         set
         {

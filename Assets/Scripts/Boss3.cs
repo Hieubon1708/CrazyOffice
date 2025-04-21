@@ -1,11 +1,6 @@
 using DG.Tweening;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.XR;
-using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 
 public class Boss3 : Boss
 {
@@ -31,6 +26,8 @@ public class Boss3 : Boss
     public GameObject[] necks;
 
     public ParticleSystem blood;
+
+    public Transform targetFoot;
 
     public override Vector3 TargetPosition
     {
@@ -63,11 +60,12 @@ public class Boss3 : Boss
     public override void SubtractHp()
     {
         if (hp <= 0) return;
-        hp -= 1;
+
+        AudioController.instance.PlayVibrate(50);
+
+        base.SubtractHp();
 
         blood.Play();
-
-        bossHealth.SubtractHp(startHp, startHp - hp);
 
         if (hp == 0)
         {
@@ -80,6 +78,11 @@ public class Boss3 : Boss
             headCut.AddForce(new Vector3(0, 10, 1), ForceMode.Impulse);
 
             PlayerController.instance.isSoloBoss = false;
+
+            DOVirtual.DelayedCall(1.5f, delegate
+            {
+                PlayerController.instance.Move();
+            });
         }
     }
 
@@ -99,44 +102,52 @@ public class Boss3 : Boss
 
                     PlayerController.instance.StopMove();
 
-                    PlayerController.instance.Strangle();
+                    BeforeKneelDown();
                 }
             }
         }
     }
 
-    public void KneelDown(Transform hand)
+    public void BeforeKneelDown()
     {
-        hand.gameObject.SetActive(false);
+        Hand hand = PlayerController.instance.hand;
 
-        animator.SetTrigger("Idle");
+        hand.handPivot.transform.SetParent(targetHandOrFoot);
 
-        transform.DOMoveY(transform.position.y - 1f, 0.25f).OnComplete(delegate
+        hand.gameObject.SetActive(true);
+
+        hand.handPivot.transform.position = afterStrangle[1].position;
+
+        hand.handPivot.transform.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
+        hand.handPivot.transform.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
         {
-            DOVirtual.DelayedCall(0.5f, delegate
+            transform.DORotate(new Vector3(0f, 180f, 0f), 0.5f, RotateMode.WorldAxisAdd).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
             {
-                hand.gameObject.SetActive(true);
+                hand.handPivot.gameObject.SetActive(false);
 
-                hand.position = afterStrangle[1].position;
+                PlayerController.instance.Kick();
+            });
+        });
+    }
 
-                hand.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
-                hand.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
-                {
-                    transform.DORotate(new Vector3(0f, 180f, 0f), 0.5f, RotateMode.WorldAxisAdd).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
-                    {
-                        woodBar.DOLocalMoveY(1.26f, 0.25f).SetDelay(0.25f).SetUpdate(true).OnComplete(delegate
-                        {
-                            animator.SetTrigger("Kneel");
-                        });
-                    });
-                });
-            }).SetUpdate(true);
-        }).SetUpdate(true);
+    public void Kick()
+    {
+        navMeshAgent.enabled = false;
+
+        animator.SetTrigger("KickBehind");
+
+        transform.DOMove(torture.position, 0.25f).SetUpdate(true).OnComplete(delegate
+        {
+            animator.SetTrigger("Kneel");
+            StartCoroutine(AfterKneel());
+        });
     }
 
     public void Cut()
     {
         if (hand.activeSelf) hand.SetActive(false);
+
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.behead, 50);
 
         knife.DOLocalMoveY(0.15f, 0.05f).OnComplete(delegate
         {
@@ -148,11 +159,19 @@ public class Boss3 : Boss
         }).SetUpdate(true);
     }
 
+    public void Strangle()
+    {
+        navMeshAgent.enabled = false;
+        transform.SetParent(PlayerController.instance.transform);
+
+        animator.SetTrigger("Strangle");
+    }
+
     public IEnumerator AfterKneel()
     {
-        transform.SetParent(GameController.instance.levelObject.transform);
+        yield return new WaitForSeconds(0.35f);
 
-        PlayerController.instance.hand.handPivot.SetActive(false);
+        transform.SetParent(GameController.instance.levelObject.transform);
 
         woodBar.DOLocalMoveY(0.3312885f, 0.25f).SetUpdate(true).OnComplete(delegate
         {

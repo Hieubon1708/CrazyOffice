@@ -23,13 +23,14 @@ public class Enemy : Bot
     EnemyEvent enemyEvent;
 
     [HideInInspector]
-    public bool isDamage;
-    [HideInInspector]
     public bool isExcludeLayer;
 
     bool isPrepareForBattle;
 
     LayerMask weaponLayer;
+
+    [HideInInspector]
+    public bool isCollision;
 
     public override void Awake()
     {
@@ -53,76 +54,109 @@ public class Enemy : Bot
 
     public void SubtractHp(int hp, Vector2 dir, Rigidbody rb)
     {
-        if (this.hp <= 0 || isExcludeLayer) return;
-
-        //Debug.Log(rb.name);
+        if (this.hp <= 0) return;
 
         ExcludePlayerWeapon(true);
 
-        this.hp -= hp;
-        if (this.hp == 1)
+        DOVirtual.DelayedCall(0.5f, delegate
         {
-            animator.SetTrigger("HitDouble");
-        }
-        else if (this.hp == 2)
+            ExcludePlayerWeapon(false);
+            isTarget = true;
+        }).SetUpdate(true);
+
+        if (hp == 1)
         {
-            animator.SetTrigger("HitDouble");
+            this.hp -= hp;
+            if (this.hp == 1)
+            {
+                animator.SetTrigger("HitDouble");
+                FallEquip();
+            }
+            else if (this.hp == 2)
+            {
+                animator.SetTrigger("HitDouble");
+                FallEquip();
+            }
+            else
+            {
+                Die(rb, dir);
+
+                int gold = Random.Range(20, 30);
+
+                UIController.instance.totalEarn += gold;
+            }
         }
         else
         {
-            animator.enabled = false;
-            navMeshAgent.enabled = false;
+            if (rbArmor != null) FallArmor();
+            if (rbHat != null) FallHat();
 
-            puppetMaster.state = PuppetMaster.State.Dead;
-            puppetMaster.mode = PuppetMaster.Mode.Active;
+            UIController.instance.totalEarn += Random.Range(20, 30);
 
-            puppetMaster.muscleSpring = 0;
-            puppetMaster.muscleDamper = 50;
-
-            for (int i = 0; i < rbs.Length; i++)
-            {
-                rbs[i].excludeLayers = weaponLayer;
-                rbs[i].isKinematic = false;
-            }
-
-            Vector3 localForce = transform.TransformDirection(new Vector3(-dir.x * 200f, dir.y * 200f, Random.Range(-200f, -250f)));
-
-            rb.AddForce(localForce, ForceMode.Impulse);
-
-            DOVirtual.DelayedCall(2f, delegate
-            {
-                PlayerController.instance.ResumeMove();
-                PlayerController.instance.Move();
-            }).SetUpdate(true);
+            Die(rb, dir);
         }
     }
 
-    public void FallArmor()
+    void Die(Rigidbody rb, Vector2 dir)
+    {
+        animator.enabled = false;
+        navMeshAgent.enabled = false;
+
+        puppetMaster.state = PuppetMaster.State.Dead;
+        puppetMaster.mode = PuppetMaster.Mode.Active;
+
+        puppetMaster.muscleSpring = 0;
+        puppetMaster.muscleDamper = 50;
+
+        for (int i = 0; i < rbs.Length; i++)
+        {
+            rbs[i].excludeLayers = weaponLayer;
+            rbs[i].isKinematic = false;
+        }
+
+        Vector3 localForce = transform.TransformDirection(new Vector3(-dir.x * 200f, dir.y * 200f, Random.Range(-200f, -250f)));
+
+        rb.AddForce(localForce, ForceMode.Impulse);
+
+        PlayerController.instance.StopMove();
+
+        DOVirtual.DelayedCall(2f, delegate
+        {
+            PlayerController.instance.ResumeMove();
+            PlayerController.instance.Move();
+        }).SetUpdate(true);
+    }
+
+    void FallEquip()
     {
         if (startHp == 3)
         {
             if (hp == 1)
             {
-                rbArmor.isKinematic = false;
-
-                rbArmor.transform.SetParent(GameController.instance.levelObject.transform);
-
-                rbArmor.angularVelocity = RandomAngularVelocity() * 5;
-
-                Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
-
-                rbArmor.AddForce(localForce, ForceMode.Impulse);
+                FallArmor();
             }
             else if (hp == 2)
             {
                 FallHat();
             }
-
         }
         else
         {
             FallHat();
         }
+    }
+
+    public void FallArmor()
+    {
+        rbArmor.isKinematic = false;
+
+        rbArmor.transform.SetParent(GameController.instance.levelObject.transform);
+
+        rbArmor.angularVelocity = RandomAngularVelocity() * 5;
+
+        Vector3 localForce = transform.TransformDirection(new Vector3(Random.Range(-2f, 2f), Random.Range(7f, 8f), Random.Range(-7f, -8f)));
+
+        rbArmor.AddForce(localForce, ForceMode.Impulse);
     }
 
     public void FallHat()
@@ -145,13 +179,11 @@ public class Enemy : Bot
 
     public void AfterHit()
     {
-        isDamage = false;
         isTarget = true;
     }
 
     public void FixedUpdate()
     {
-        if (isDamage) return;
         if (PlayerController.instance != null && navMeshAgent.enabled)
         {
             if (isTarget)
@@ -202,14 +234,6 @@ public class Enemy : Bot
         }
     }
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            AfterHit();
-        }
-    }
-
     public void FightAgain()
     {
         isThrowObject = false;
@@ -224,7 +248,7 @@ public class Enemy : Bot
 
     public void DieByObject(Rigidbody rb)
     {
-        SubtractHp(1, Vector2.zero, rb);
+        SubtractHp(10, Vector2.zero, rb);
     }
 
     Vector3 RandomAngularVelocity()
