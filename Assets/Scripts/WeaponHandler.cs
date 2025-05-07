@@ -1,5 +1,6 @@
 ﻿using Ara;
 using DG.Tweening;
+using RootMotion.Dynamics;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -16,6 +17,7 @@ public class WeaponHandler : MonoBehaviour
     Rigidbody rb;
 
     bool isThrow;
+    bool isGround;
 
     [HideInInspector]
     public AraTrail araTrail;
@@ -24,6 +26,8 @@ public class WeaponHandler : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         araTrail = GetComponentInChildren<AraTrail>();
+
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
         araTrail.emit = false;
     }
@@ -37,7 +41,7 @@ public class WeaponHandler : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy") || rb.useGravity) return;
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy") || isGround) return;
         if (isThrow)
         {
             if (!rb.useGravity)
@@ -55,6 +59,11 @@ public class WeaponHandler : MonoBehaviour
                 normal = collision.contacts[0].point;
                 collidersInContact.Add(collision.collider);
             }
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Default"))
+        {
+            isGround = true;
         }
     }
 
@@ -76,6 +85,10 @@ public class WeaponHandler : MonoBehaviour
     public void ThrowStraight(Vector3 dir)
     {
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.swings, 0);
+
+        CapsuleCollider capsuleCollider = GetComponent<CapsuleCollider>();
+
+        if (capsuleCollider != null) capsuleCollider.enabled = true;
 
         isThrow = true;
         transform.SetParent(GameController.instance.levelObject.transform);

@@ -42,6 +42,7 @@ public class AudioController : MonoBehaviour
     public AudioClip balloon;
     public AudioClip ironSlideDoor;
     public AudioClip ironDoor;
+    public AudioClip endElectricity;
 
     Coroutine coroutineWalk;
 

@@ -1272,6 +1272,7 @@ GameObject:
   - component: {fileID: 2804220543346253636}
   - component: {fileID: 3812409401779536277}
   - component: {fileID: 1281499515667450823}
+  - component: {fileID: 1650003966821765973}
   m_Layer: 6
   m_Name: fish_atlas Root
   m_TagString: Weapon
@@ -1340,6 +1341,29 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!136 &1650003966821765973
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4742118375785503709}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Radius: 0.11
+  m_Height: 0.9563337
+  m_Direction: 2
+  m_Center: {x: 0, y: 0, z: 0.5495786}
 --- !u!1 &4840962946759479619
 GameObject:
   m_ObjectHideFlags: 0

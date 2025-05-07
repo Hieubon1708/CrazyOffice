@@ -17,6 +17,12 @@ public abstract class Boss : Bot
     [HideInInspector]
     public Vector3 headStatic;
 
+    SkinnedMeshRenderer meshRenderer;
+
+    protected Material[] materials;
+
+    protected int indexTex = -1;
+
     public override Vector3 TargetRotation
     {
         get
@@ -31,6 +37,10 @@ public abstract class Boss : Bot
         base.Awake();
 
         bossHealth = GetComponentInChildren<BossHealth>(true);
+
+        meshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
+        materials = meshRenderer.sharedMaterials;
+        materials[1].SetFloat("_HasOverlayTexture", 0);
 
         startHp = hp;
 
@@ -48,16 +58,22 @@ public abstract class Boss : Bot
         }
     }
 
+    protected int GetIndexTex()
+    {
+        if (indexTex == -1) indexTex = GameController.instance.bossFaces.Length - 1;
+        return indexTex;
+    }
+
     public void HitFirst()
     {
         animator.SetTrigger("HitFirst");
     }
 
-
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            GetComponent<BoxCollider>().enabled = false;
             StartCoroutine(PlayerController.instance.SeeBoss());
         }
     }

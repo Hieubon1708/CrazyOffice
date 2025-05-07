@@ -93,7 +93,7 @@ public class Object : MonoBehaviour
             GameController.instance.fxHitFly.Play();
         }
 
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Default"))
+        if (collision.gameObject.CompareTag("Floor"))
         {
             isCollisionByFloor = true;
         }

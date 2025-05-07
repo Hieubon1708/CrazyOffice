@@ -1,3 +1,4 @@
+using ACEPlay.Native;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ public class PanelLose : MonoBehaviour
 
     public void Show()
     {
+        NativeAds.instance.SetPosition(NativeAds.Position.Bottom);
+
         isTry = false;
 
         isTweening = true;

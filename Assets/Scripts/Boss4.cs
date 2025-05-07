@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class Boss4 : Boss
@@ -28,11 +29,15 @@ public class Boss4 : Boss
     bool isAfterHeadDip;
     bool isInWater;
 
+    Animation ani;
+
     public SkinnedMeshRenderer MeshFilter;
 
     public void Start()
     {
-        hp = 100;
+        ani = GetComponent<Animation>();
+
+        hp = 50;
         startHp = hp;
 
         Mesh mesh = MeshFilter.sharedMesh;
@@ -76,26 +81,35 @@ public class Boss4 : Boss
     {
         if (hp <= 0) return;
 
+        if (hp % 5 == 0)
+        {
+            materials[1].SetTexture("_OverlayTex", GameController.instance.bossFaces[GetIndexTex()]);
+            materials[1].SetFloat("_HasOverlayTexture", 1);
+            indexTex--;
+        }
+
         base.SubtractHp();
 
         if (hp == 0)
         {
             PlayerController.instance.isSoloBoss = false;
-
+        
             HeadDipExit();
 
-            animator.SetTrigger("DieByHeadDip");
-
-            DOVirtual.DelayedCall(1.5f, delegate
+            DOVirtual.DelayedCall(1f, delegate
             {
-                PlayerController.instance.Move();
+                PlayerController.instance.tRotate = 0.025f;
+
+                isAfterHeadDip = false;
+
+                isTarget = true;
             });
         }
     }
 
     public void FixedUpdate()
     {
-        if (PlayerController.instance != null && navMeshAgent.enabled)
+        if (PlayerController.instance != null)
         {
             if (isTarget)
             {
@@ -160,6 +174,19 @@ public class Boss4 : Boss
         totalTime = 0;
     }
 
+    public void EndKick()
+    {
+        isAfterHeadDip = true;
+
+        animator.SetTrigger("DieByHeadDip");
+
+        ani.Play();
+        DOVirtual.DelayedCall(1.5f, delegate
+        {
+            PlayerController.instance.Move();
+        });
+    }
+
     public void AfterKickRight()
     {
         navMeshAgent.enabled = false;
@@ -184,6 +211,7 @@ public class Boss4 : Boss
         isAfterHeadDip = true;
 
         PlayerController.instance.navMeshAgent.angularSpeed = 0;
+        PlayerController.instance.tRotate = 0.35f;
 
         PlayerController.instance.ResumeMove();
 

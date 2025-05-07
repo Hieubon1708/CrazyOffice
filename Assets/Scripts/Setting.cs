@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,7 +27,7 @@ public class Setting : MonoBehaviour
 
     public void ChangeSettingOption(SettingOption settingOption, bool isActive, float time)
     {
-        if(time != 0) AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+        if (time != 0) AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
 
         if (settingOption.type == TypeSetting.Sound)
         {
@@ -48,7 +49,10 @@ public class Setting : MonoBehaviour
     {
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
 
-        ACEPlay.Bridge.BridgeController.instance.ShowBannerCollapsible();
+        if (ACEPlay.Bridge.BridgeController.instance.IsMRECsAdsReady())
+        {
+            ACEPlay.Bridge.BridgeController.instance.ShowMRECs();
+        }
 
         panel.SetActive(true);
     }
@@ -57,7 +61,10 @@ public class Setting : MonoBehaviour
     {
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
 
-        ACEPlay.Bridge.BridgeController.instance.HideBannerCollapsible();
+        if (ACEPlay.Bridge.BridgeController.instance.IsMRECsAdsReady())
+        {
+            ACEPlay.Bridge.BridgeController.instance.HideMRECs();
+        }
 
         panel.SetActive(false);
     }

@@ -24,8 +24,9 @@ public class Foot : MonoBehaviour
             footPivot.transform.DOMove(boss.targetHandOrFoot.position, 0.25f).SetUpdate(true).SetDelay(0.5f).SetEase(Ease.InBack).OnComplete(delegate
             {
                 footPivot.SetActive(false);
+                AudioController.instance.PlaySoundNVibrate(AudioController.instance.GetHit(GameController.WeaponType.a), 0);
 
-                if(boss is Boss2) (boss as Boss2).Kick();
+                if (boss is Boss2) (boss as Boss2).Kick();
                 if(boss is Boss3) (boss as Boss3).Kick();
             });
         }).SetUpdate(true);

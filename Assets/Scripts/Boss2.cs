@@ -1,7 +1,5 @@
 using DG.Tweening;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Boss2 : Boss
@@ -27,6 +25,9 @@ public class Boss2 : Boss
     public ParticleSystem fxElectric;
 
     bool isElectric;
+
+    public GameObject bone;
+
     public void Start()
     {
         hp = 50;
@@ -65,6 +66,13 @@ public class Boss2 : Boss
     {
         if (hp <= 0) return;
 
+        if (hp % 5 == 0)
+        {
+            materials[1].SetTexture("_OverlayTex", GameController.instance.bossFaces[GetIndexTex()]);
+            materials[1].SetFloat("_HasOverlayTexture", 1);
+            indexTex--;
+        }
+
         AudioController.instance.PlayVibrate(50);
 
         base.SubtractHp();
@@ -75,11 +83,16 @@ public class Boss2 : Boss
 
             fxElectric.Stop();
 
+            AudioController.instance.PlaySoundNVibrate(AudioController.instance.endElectricity, 50);
+
             PlayerController.instance.isSoloBoss = false;
 
             AudioController.instance.StopSrcLoop();
 
-            DOVirtual.DelayedCall(1f, delegate
+            gameObject.SetActive(false);
+            bone.SetActive(true);
+
+            DOVirtual.DelayedCall(2.5f, delegate
             {
                 PlayerController.instance.Move();
             });

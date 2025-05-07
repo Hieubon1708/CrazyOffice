@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 419371105233321080}
   - component: {fileID: 6316637517014383470}
   - component: {fileID: 6550847624765612909}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Plant (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -144,7 +144,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8154604033272851784}
   - component: {fileID: 8846175292064218475}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Plant
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -164,8 +164,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 4420968057998652835}
   - {fileID: 5484840555274175817}
+  - {fileID: 4420968057998652835}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!54 &8846175292064218475

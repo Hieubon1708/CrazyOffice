@@ -1,3 +1,4 @@
+using ACEPlay.Native;
 using DG.Tweening;
 using System;
 using System.Collections;
@@ -58,6 +59,8 @@ public class PanelWin : MonoBehaviour
 
     public void Show()
     {
+        NativeAds.instance.SetPosition(NativeAds.Position.Bottom);
+
         gameObject.SetActive(true);
 
         isClaim = false;
@@ -196,7 +199,14 @@ public class PanelWin : MonoBehaviour
 
         noThanks.SetActive(false);
 
+        List<GameController.WeaponType> listUnlocks = GameManager.instance.WeaponsUnlocked;
+
         List<GameController.WeaponType> allWeapons = ((GameController.WeaponType[])Enum.GetValues(typeof(GameController.WeaponType))).ToList();
+
+        foreach (var w in listUnlocks)
+        {
+            allWeapons.Remove(w);
+        }
 
         int random = (int)allWeapons[UnityEngine.Random.Range(0, allWeapons.Count)];
 

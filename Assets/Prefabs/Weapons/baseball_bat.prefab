@@ -362,4 +362,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponType: 0
   collidersInContact: []
-  araTrail: {fileID: 0}

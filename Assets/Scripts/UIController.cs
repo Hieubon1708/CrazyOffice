@@ -1,3 +1,4 @@
+using ACEPlay.Native;
 using DG.Tweening;
 using System.Collections.Generic;
 using TMPro;
@@ -34,6 +35,8 @@ public class UIController : MonoBehaviour
 
     public Animation fxBlood;
 
+    public GameObject buttonAds;
+
     void Awake()
     {
         instance = this;
@@ -45,6 +48,8 @@ public class UIController : MonoBehaviour
     public void Start()
     {
         UpdateGold();
+
+        buttonAds.SetActive(ACEPlay.Bridge.BridgeController.instance.CanShowAds);
     }
 
     void FirstUI(bool isActive)
@@ -64,6 +69,8 @@ public class UIController : MonoBehaviour
 
     public void LoadData()
     {
+        NativeAds.instance.SetPosition(NativeAds.Position.Top);
+
         totalEarn = 0;
 
         int replayLevel = GameManager.instance.ReplayLevel;
@@ -207,6 +214,14 @@ public class UIController : MonoBehaviour
     public void RemoveAds()
     {
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.clickButton, 50);
+
+        UnityStringEvent e = new UnityStringEvent();
+        e.AddListener((result) =>
+        {
+            ACEPlay.Bridge.BridgeController.instance.CanShowAds = false;
+            buttonAds.SetActive(false);
+        });
+        ACEPlay.Bridge.BridgeController.instance.PurchaseProduct("remove_ads", e);
     }
 
     public void Replay()

@@ -7,6 +7,17 @@ namespace ACEPlay.Native
     public class NativeAds : MonoBehaviour
     {
         public static NativeAds instance;
+
+        public RectTransform top;
+        public RectTransform bottom;
+        public RectTransform content;
+
+        public enum Position
+        {
+            Top, Bottom
+        }
+
+
 #if UNITY_ANDROID
         [SerializeField] string adUnitId = "ca-app-pub-6632644511740977/6806026708";
         string idTest = "ca-app-pub-3940256099942544/2247696110";
@@ -36,6 +47,14 @@ namespace ACEPlay.Native
         public void DisplayNativeAds(bool enable)
         {
             nativeAds.SetActive(enable);
+        }
+
+        public void SetPosition(Position position)
+        {
+            if(position == Position.Top) content.SetParent(top);
+            else if(position == Position.Bottom) content.SetParent(bottom);
+
+            content.anchoredPosition = Vector2.zero;
         }
     }
 }

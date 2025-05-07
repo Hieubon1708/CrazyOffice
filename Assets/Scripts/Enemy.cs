@@ -32,6 +32,11 @@ public class Enemy : Bot
     [HideInInspector]
     public bool isCollision;
 
+    public Rigidbody headCut;
+    bool isHeadCut;
+
+    public GameObject[] necks;
+
     public override void Awake()
     {
         base.Awake();
@@ -44,6 +49,18 @@ public class Enemy : Bot
         startHp = hp;
 
         GameController.instance.SetClothes(head, spine, hpType, this);
+    }
+
+    public override Vector3 TargetRotation
+    {
+        get
+        {
+            if (isHeadCut)
+            {
+                return headCut.transform.position;
+            }
+            return rbs[0].position;
+        }
     }
 
     public void Start()
@@ -79,7 +96,7 @@ public class Enemy : Bot
             }
             else
             {
-                Die(rb, dir);
+                Die(rb, dir, rb == rbs[9]);
 
                 int gold = Random.Range(20, 30);
 
@@ -93,11 +110,11 @@ public class Enemy : Bot
 
             UIController.instance.totalEarn += Random.Range(20, 30);
 
-            Die(rb, dir);
+            Die(rb, dir, false);
         }
     }
 
-    void Die(Rigidbody rb, Vector2 dir)
+    void Die(Rigidbody rb, Vector2 dir, bool isHeadCut)
     {
         animator.enabled = false;
         navMeshAgent.enabled = false;
@@ -114,7 +131,22 @@ public class Enemy : Bot
             rbs[i].isKinematic = false;
         }
 
-        Vector3 localForce = transform.TransformDirection(new Vector3(-dir.x * 200f, dir.y * 200f, Random.Range(-200f, -250f)));
+        Vector3 localForce = transform.TransformDirection(new Vector3(-dir.x * (isHeadCut ? 15f : 200f), dir.y * (isHeadCut ? 15f : 200f), (isHeadCut ? -15f : Random.Range(-200f, -250f))));
+
+        if (isHeadCut)
+        {
+            this.isHeadCut = true;
+
+            foreach (GameObject n in necks)
+            {
+                n.transform.localScale = Vector3.zero;
+            }
+
+            headCut.transform.SetParent(GameController.instance.levelObject.transform);
+            headCut.gameObject.SetActive(true);
+            headCut.AddForce(localForce, ForceMode.Impulse);
+            headCut.angularVelocity = RandomAngularVelocity() * 10;
+        }
 
         rb.AddForce(localForce, ForceMode.Impulse);
 

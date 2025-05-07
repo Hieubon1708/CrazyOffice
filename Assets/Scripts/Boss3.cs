@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -61,6 +62,10 @@ public class Boss3 : Boss
     {
         if (hp <= 0) return;
 
+        materials[1].SetTexture("_OverlayTex", GameController.instance.bossFaces[GetIndexTex()]);
+        materials[1].SetFloat("_HasOverlayTexture", 1);
+        indexTex--;
+
         AudioController.instance.PlayVibrate(50);
 
         base.SubtractHp();
@@ -110,22 +115,25 @@ public class Boss3 : Boss
 
     public void BeforeKneelDown()
     {
-        Hand hand = PlayerController.instance.hand;
-
-        hand.handPivot.transform.SetParent(targetHandOrFoot);
-
-        hand.gameObject.SetActive(true);
-
-        hand.handPivot.transform.position = afterStrangle[1].position;
-
-        hand.handPivot.transform.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
-        hand.handPivot.transform.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
+        DOVirtual.DelayedCall(0.25f, delegate
         {
-            transform.DORotate(new Vector3(0f, 180f, 0f), 0.5f, RotateMode.WorldAxisAdd).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
-            {
-                hand.handPivot.gameObject.SetActive(false);
+            Hand hand = PlayerController.instance.hand;
 
-                PlayerController.instance.Kick();
+            hand.handPivot.transform.SetParent(targetHandOrFoot);
+
+            hand.gameObject.SetActive(true);
+
+            hand.handPivot.transform.position = afterStrangle[1].position;
+
+            hand.handPivot.transform.DOLocalRotateQuaternion(Quaternion.Euler(2.448f, 33.371f, -22.854f), 0.35f).SetUpdate(true);
+            hand.handPivot.transform.DOMove(afterStrangle[0].position, 0.35f).SetUpdate(true).OnComplete(delegate
+            {
+                transform.DORotate(new Vector3(0f, 180f, 0f), 0.5f, RotateMode.WorldAxisAdd).SetUpdate(true).SetDelay(0.15f).OnComplete(delegate
+                {
+                    hand.handPivot.gameObject.SetActive(false);
+
+                    PlayerController.instance.Kick();
+                });
             });
         });
     }

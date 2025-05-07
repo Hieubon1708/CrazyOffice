@@ -19,10 +19,11 @@ public class Shop : MonoBehaviour
     int weaponCost = 1500;
     public TextMeshProUGUI textWeaponCost;
 
-    public Image[] buttonBuy;
+    public Image[] ImageButtonBuy;
     public TextMeshProUGUI textBuy;
 
     public GameObject[] buttons;
+    public Button buttonBuy;
 
     private void Awake()
     {
@@ -97,11 +98,12 @@ public class Shop : MonoBehaviour
 
             if (!isOk) color = new Vector4(0.5f, 0.5f, 0.5f, 1f);
 
-            foreach (var e in buttonBuy)
+            foreach (var e in ImageButtonBuy)
             {
                 e.color = color;
             }
 
+            buttonBuy.interactable = isOk;
             textBuy.color = color;
         }
     }

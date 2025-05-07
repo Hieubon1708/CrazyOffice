@@ -167,6 +167,7 @@ public class PlayerController : MonoBehaviour
 
     Vector3 startInput;
     Vector3 endInput;
+    Vector3 endAngle;
     Vector3 startPosition;
     Vector3 startRotation;
 
@@ -192,12 +193,6 @@ public class PlayerController : MonoBehaviour
 
     public void Update()
     {
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            index = 0;
-            Kick();
-        }
         if (!navMeshAgent.enabled) return;
 
         if (Input.GetMouseButtonDown(0) && !isAttack)
@@ -205,6 +200,7 @@ public class PlayerController : MonoBehaviour
             isDrag = true;
             startInput = Input.mousePosition;
             endInput = Input.mousePosition;
+            endAngle = weapon.forward;
             startRotation = weapon.localEulerAngles;
             startPosition = weapon.localPosition;
 
@@ -285,29 +281,35 @@ public class PlayerController : MonoBehaviour
             Vector3 currentInput = Input.mousePosition;
 
             //Rotation
-            float xRotation = (startInput.x - currentInput.x) * 0.3f;
-            float yRotation = (currentInput.y - startInput.y) * 0.4f;
 
-            float clampX = Mathf.Clamp(yRotation + startRotation.x, 0, 85);
+            //Ngang
+            float xRotation = (startInput.x - currentInput.x) * 0.25f;
+            //Doc
+            float yRotation = (currentInput.y - startInput.y) * 0.25f;
+
+            float clampX = Mathf.Clamp(yRotation + startRotation.x, 0, 55);
             float clampY = Mathf.Clamp(xRotation + startRotation.y, 15, 165);
 
             Quaternion newLocalRotation = Quaternion.Euler(clampX, clampY, startWeaponAngle);
             weapon.localRotation = Quaternion.Lerp(weapon.localRotation, newLocalRotation, 0.35f);
 
             //Position
-            float xPosition = (currentInput.x - startInput.x) * 0.0015f;
-            float yPositiion = (startInput.y - currentInput.y) * 0.0025f;
 
-            float xClamp = Mathf.Clamp(startPosition.z + xPosition, -0.5f, 0.5f);
+            //Doc
+            float xPosition = (currentInput.x - startInput.x) * 0.0015f;
+            //Ngang
+            float yPositiion = (startInput.y - currentInput.y) * 0.0015f;
+
+            float xClamp = Mathf.Clamp(startPosition.z + xPosition, -0.65f, 0.65f);
             float yClamp = Mathf.Clamp(startPosition.y + yPositiion, -0.75f, 0f);
 
             weapon.localPosition = Vector3.Lerp(weapon.localPosition, new Vector3(0, yClamp, xClamp), 0.35f);
 
-            float distance = Vector2.Distance(currentInput, endInput);
+            float angle = Vector3.Angle(endAngle, weapon.forward);
 
             if (isCollision)
             {
-                if (distance > 30f && weaponHandler.collidersInContact.Count > 0 && !CurrentEnemy.isExcludeLayer)
+                if (angle > 3f && weaponHandler.collidersInContact.Count > 0 && !CurrentEnemy.isExcludeLayer)
                 {
                     isRoting = true;
                     weaponHandler.HitFx();
@@ -317,7 +319,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (distance > 20)
+            if (angle > 3)
             {
                 if (currentInput.x < startInput.x && flagSoundAttack != -1)
                 {
@@ -334,6 +336,7 @@ public class PlayerController : MonoBehaviour
             }
 
             endInput = Input.mousePosition;
+            endAngle = weapon.forward;
         }
 
         if (index == -1) return;
@@ -426,6 +429,7 @@ public class PlayerController : MonoBehaviour
         CurrentEnemy.puppetMaster.mode = RootMotion.Dynamics.PuppetMaster.Mode.Kinematic;
 
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.hitsMine, 0);
+        AudioController.instance.PlaySoundNVibrate(AudioController.instance.GetHit(GameController.WeaponType.a), 0);
 
         navMeshAgent.enabled = false;
         cameraPlayer.Die();

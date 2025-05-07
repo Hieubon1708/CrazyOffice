@@ -9,6 +9,7 @@ public class Boss1 : Boss
     public Transform toiletHole;
 
     public UIHandTutorial hand;
+    public ParticleSystem toiletPar;
 
     public override Vector3 TargetPosition
     {
@@ -22,6 +23,10 @@ public class Boss1 : Boss
     public override void SubtractHp()
     {
         if (hp <= 0) return;
+
+        materials[1].SetTexture("_OverlayTex", GameController.instance.bossFaces[GetIndexTex()]);
+        materials[1].SetFloat("_HasOverlayTexture", 1);
+        indexTex--;
 
         base.SubtractHp();
 
@@ -93,7 +98,7 @@ public class Boss1 : Boss
     public void DropToilet()
     {
         AudioController.instance.PlaySoundNVibrate(AudioController.instance.flushToilet, 0);
-
+        toiletPar.Play();
         healthBar.SetActive(false);
         transform.DOMove(toiletHole.position, 1.5f).SetUpdate(true);
         transform.DOScale(0f, 1.5f).SetUpdate(true).OnComplete(delegate

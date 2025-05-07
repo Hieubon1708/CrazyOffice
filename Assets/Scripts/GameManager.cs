@@ -8,20 +8,24 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
+    public int level;
+    public bool isFull;
+
     private void Awake()
     {
-       /* if(BridgeController.instance == null)
-        {
-            SceneManager.LoadScene(0);
+        /* if(BridgeController.instance == null)
+         {
+             SceneManager.LoadScene(0);
 
-            return;
-        }*/
+             return;
+         }*/
+        Application.targetFrameRate = 120;
 
-        instance = this;
         PlayerPrefs.DeleteAll();
 
-        Level = 20;
-        WeaponsUnlocked = new List<WeaponType>((GameController.WeaponType[])Enum.GetValues(typeof(GameController.WeaponType)));
+        instance = this;
+        //Level = level;
+        if(isFull) WeaponsUnlocked = new List<WeaponType>((GameController.WeaponType[])Enum.GetValues(typeof(GameController.WeaponType)));
     }
 
     public int Level

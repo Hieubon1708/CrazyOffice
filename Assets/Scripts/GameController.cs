@@ -1,5 +1,4 @@
 using UnityEngine;
-using static Cinemachine.DocumentationSortingAttribute;
 
 public class GameController : MonoBehaviour
 {
@@ -21,6 +20,8 @@ public class GameController : MonoBehaviour
     public GameObject preHat4;
     public GameObject preArmor3;
     public GameObject preArmor4;
+
+    public Texture2D[] bossFaces;
 
     void Awake()
     {
@@ -84,6 +85,7 @@ public class GameController : MonoBehaviour
 
     public int GetIndexIdle(IdleType idleType)
     {
+        return Random.Range(0, 5);
         /*switch (idleType)
         {
             case IdleType.ListenToThePhone: return 1;
